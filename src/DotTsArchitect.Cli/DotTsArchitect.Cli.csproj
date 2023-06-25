@@ -22,4 +22,8 @@
       <ProjectReference Include="..\DotTsArchitect.Core\DotTsArchitect.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Generated\" />
+    </ItemGroup>
+
 </Project>

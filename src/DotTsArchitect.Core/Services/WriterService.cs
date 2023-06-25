@@ -1,9 +1,13 @@
-﻿using System.Text;
+﻿using System.Runtime.InteropServices.ComTypes;
+using System.Text;
 using DotTsArchitect.Core.Configuration;
 using DotTsArchitect.Core.Extensions;
+using DotTsArchitect.Core.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Extensions.Options;
+using Serilog;
 
 namespace DotTsArchitect.Core.Services;
 
@@ -23,7 +27,69 @@ public record WriteOptions(
 
 public class WriterService
 {
-    public WriterService() { }
+    private readonly GlobalConfig _config;
+
+    public WriterService(IOptions<GlobalConfig> config)
+    {
+        _config = config.Value;
+    }
+
+    public void WriteFromConfig()
+    {
+        foreach (var @namespace in _config.Namespaces)
+        {
+            var @classes = @namespace.GetClassDeclarationsForNamespace();
+            // @classes.DumpObjectJson();
+            foreach (var namespaceWithNodes in @classes)
+            {
+                Log.Logger.Information(
+                    "Writing namespace {Namespace}, {Count} classes",
+                    namespaceWithNodes.Namespace.Name,
+                    namespaceWithNodes.Nodes.Count()
+                );
+                WriteTsFilesForNamespace(namespaceWithNodes.Namespace, namespaceWithNodes.Nodes);
+            }
+            // request.
+        }
+    }
+
+    private void WriteTsFilesForNamespace(
+        ConfigNameSpaceWithPath @namespace,
+        IEnumerable<ClassDeclarationSyntax> classes
+    )
+    {
+        string file = $"{@namespace.Path}\\Generated\\{@namespace.Name}\\{@namespace.Name}.ts";
+        // string file = $"{@namespace.Path}\\{@namespacee.Name}.ts";
+        FileInfo componentTemplateFile = new FileInfo(file);
+        using FileStream fs = componentTemplateFile.CreateFileSafe();
+        foreach (var classDeclarationSyntax in classes)
+        {
+            var typeName = classDeclarationSyntax.Identifier.Text;
+            var exportModel = GetExportModelType(_config.ExportModelType, typeName);
+            fs.WriteLine(exportModel);
+
+            foreach (
+                var property in classDeclarationSyntax
+                    .DescendantNodes()
+                    .OfType<PropertyDeclarationSyntax>()
+            )
+            {
+                string name = property.Identifier.ValueText.ToCaseOfOption(
+                    _config.PropertyNameCase
+                );
+                // _config.Compilation.SyntaxTrees.
+                var comp = _config.Compilation.AddSyntaxTrees(classDeclarationSyntax.SyntaxTree);
+                var semanticModel = comp.GetSemanticModel(classDeclarationSyntax.SyntaxTree);
+                var typeSymbol = semanticModel.GetTypeInfo(property.Type).Type;
+                var typeSymbolName = typeSymbol!.Name;
+                typeSymbolName.Log();
+                string type = typeSymbolName.Convert();
+                fs.WriteLine($"\t{name}: {type};");
+            }
+
+            fs.WriteLine("}");
+        }
+    }
 
     public void Write(WriteRequest request)
     {
@@ -46,7 +112,9 @@ public class WriterService
         fs.WriteLine("}");
     }
 
-    public void WriteNamespaceRequest(WriteNamespaceRequest request, CSharpCompilation compilation)
+    // public void WriteFile(ClassDeclarationSyntax @class) { }
+
+    public void WriteNamespaceRequest(WriteNamespaceRequest request)
     {
         string path = request.Options.Path;
         string fileName = request.Type.Identifier.Text.ToCaseOfOption(request.Options.FileNameCase);
@@ -63,7 +131,7 @@ public class WriterService
             string name = property.Identifier.ValueText.ToCaseOfOption(
                 request.Options.PropertyNameCase
             );
-            var semanticModel = compilation.GetSemanticModel(request.Type.SyntaxTree);
+            var semanticModel = _config.Compilation.GetSemanticModel(request.Type.SyntaxTree);
             var typeSymbol = semanticModel.GetTypeInfo(property.Type).Type;
             var typeSymbolName = typeSymbol!.Name;
             typeSymbolName.Log();

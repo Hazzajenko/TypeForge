@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using DotTsArchitect.Core.Configuration;
+using DotTsArchitect.Core.Models;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -16,6 +18,101 @@ public static class NamespaceUtils
             namespacesList.AddRange(GetNamespaces(fileLocation));
         }
         return namespacesList.ToArray();
+    }
+
+    // ConfigNameSpaceWithPath
+
+    public static SyntaxTree[] GetSyntaxTrees(this ConfigNameSpaceWithPath[] nameSpaces)
+    {
+        var paths = nameSpaces.Select(x => x.Path);
+        var syntaxTrees = paths.SelectMany(fileLocation =>
+        {
+            var filesInNamespace = Directory.GetFiles(
+                fileLocation,
+                "*.cs",
+                SearchOption.AllDirectories
+            );
+            return filesInNamespace.Select(
+                file => CSharpSyntaxTree.ParseText(File.ReadAllText(file))
+            );
+        });
+
+        return syntaxTrees.ToArray();
+    }
+
+    public static SyntaxTree[] GetSyntaxTrees(this ConfigNameSpace[] nameSpaces)
+    {
+        var paths = nameSpaces.Select(x => x.Name);
+        var syntaxTrees = paths.SelectMany(fileLocation =>
+        {
+            var filesInNamespace = Directory.GetFiles(
+                fileLocation,
+                "*.cs",
+                SearchOption.AllDirectories
+            );
+            return filesInNamespace.Select(
+                file => CSharpSyntaxTree.ParseText(File.ReadAllText(file))
+            );
+        });
+
+        return syntaxTrees.ToArray();
+    }
+
+    public static SyntaxTree[] GetSyntaxTrees(string[] fileLocations)
+    {
+        var syntaxTrees = fileLocations.SelectMany(fileLocation =>
+        {
+            var filesInNamespace = Directory.GetFiles(
+                fileLocation,
+                "*.cs",
+                SearchOption.AllDirectories
+            );
+            return filesInNamespace.Select(
+                file => CSharpSyntaxTree.ParseText(File.ReadAllText(file))
+            );
+        });
+
+        return syntaxTrees.ToArray();
+    }
+
+    public static IEnumerable<NamespaceWithNodes> GetClassDeclarationsForNamespace(
+        this ConfigNameSpaceWithPath nameSpace
+    )
+    {
+        var fileLocation = nameSpace.Path;
+        var filesInNamespace = Directory.GetFiles(
+            fileLocation,
+            "*.cs",
+            SearchOption.AllDirectories
+        );
+        return filesInNamespace.Select(file =>
+        {
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(File.ReadAllText(file));
+            var root = (CompilationUnitSyntax)tree.GetRoot();
+            var nodes = root.DescendantNodes().OfType<ClassDeclarationSyntax>();
+            return new NamespaceWithNodes { Namespace = nameSpace, Nodes = nodes };
+        });
+    }
+
+    public static ClassDeclarationSyntax[] GetClassDeclarations(this ConfigNameSpace[] nameSpaces)
+    {
+        var paths = nameSpaces.Select(x => x.Name);
+        var classList = paths.SelectMany(fileLocation =>
+        {
+            var filesInNamespace = Directory.GetFiles(
+                fileLocation,
+                "*.cs",
+                SearchOption.AllDirectories
+            );
+            return filesInNamespace.Select(file =>
+            {
+                SyntaxTree tree = CSharpSyntaxTree.ParseText(File.ReadAllText(file));
+                var root = (CompilationUnitSyntax)tree.GetRoot();
+                return root.DescendantNodes().OfType<ClassDeclarationSyntax>();
+            });
+        });
+
+        return classList.SelectMany(x => x).ToArray();
     }
 
     public static (ClassDeclarationSyntax[], SyntaxTree[]) GetClassesInNameSpace(

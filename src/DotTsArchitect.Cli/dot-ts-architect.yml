@@ -1,0 +1,14 @@
+﻿#typeNamePrefix: "I"
+#typeNameSuffix: "Model"
+exportModelType: "interface"
+propertyNameCase: "camelCase"
+fileNameCase: "pascalCase"
+generateIndexFile: true
+groupByNamespace: true
+filePerNamespace: true
+
+namespaces:
+  - name: "TestNamespace"
+    output: "/output/for/namespace1"
+#  - path: "/path/to/namespace2"
+#    output: "/output/for/namespace2"

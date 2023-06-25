@@ -1,0 +1,8 @@
+﻿{
+  "namespaces": [
+    {
+      "name": "TestNamespace",
+      "output": "/output/for/namespace1"
+    }
+  ]
+}
