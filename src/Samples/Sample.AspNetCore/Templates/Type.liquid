@@ -1,0 +1,5 @@
+export type {{ TypeName }} = {
+{% for property in TypeProperties -%}
+    {{ property.Name }}: {{ property.Type }};
+{% endfor -%}
+};
