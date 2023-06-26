@@ -4,11 +4,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{584D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.AspNetCore", "src\Samples\Sample.AspNetCore\Sample.AspNetCore.csproj", "{B490F809-3477-4C29-8846-2851DE917AA4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotTsArchitect.Cli", "src\DotTsArchitect.Cli\DotTsArchitect.Cli.csproj", "{23234BBE-7FC5-4312-AC43-092F0FEF4F37}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypeForge.Cli", "src\TypeForge.Cli\TypeForge.Cli.csproj", "{23234BBE-7FC5-4312-AC43-092F0FEF4F37}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotTsArchitect.Core", "src\DotTsArchitect.Core\DotTsArchitect.Core.csproj", "{2B5FD6F3-1C6A-4781-A163-AB4CD2019867}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypeForge.Core", "src\TypeForge.Core\TypeForge.Core.csproj", "{2B5FD6F3-1C6A-4781-A163-AB4CD2019867}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotTsArchitect.AspNetCore", "src\DotTsArchitect.AspNetCore\DotTsArchitect.AspNetCore.csproj", "{AAAC3A6F-6930-45D0-87FA-6D5CC5A24FB4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypeForge.AspNetCore", "src\TypeForge.AspNetCore\TypeForge.AspNetCore.csproj", "{AAAC3A6F-6930-45D0-87FA-6D5CC5A24FB4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

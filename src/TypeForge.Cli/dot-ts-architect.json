@@ -1,0 +1,25 @@
+﻿{
+  "FolderNameCase": "KebabCase",
+  "TypeNamePrefix": "",
+  "TypeNameSuffix": "Model",
+  "FileNamePrefix": "",
+  "FileNameSuffix": "Model",
+  "ExportModelType": "Type",
+  "PropertyNameCase": "CamelCase",
+  "FileNameCase": "KebabCase",
+  "NullableType": "Undefined",
+  "GenerateIndexFile": true,
+  "GroupByNameSpace": true,
+  "NameSpaceInOneFile": false,
+  "EndLinesWithSemicolon": false,
+  "NameSpaces": [
+    {
+      "Name": "TestNamespace",
+      "Output": "/output/for/namespace1"
+    },
+    {
+      "Name": "OtherNameSpace",
+      "Output": "/output/for/namespace1"
+    }
+  ]
+}
