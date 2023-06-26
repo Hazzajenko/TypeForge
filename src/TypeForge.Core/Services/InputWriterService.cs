@@ -13,26 +13,27 @@ using TypeForge.Core.Models;
 
 namespace TypeForge.Core.Services;
 
-public class WriterService
+public class InputWriterService
 {
-    private readonly GlobalConfig _config;
+    private readonly InputGlobalConfig _config;
     private readonly bool _endLinesWithSemicolon;
 
-    public WriterService(GlobalConfig config)
+    public InputWriterService(InputGlobalConfig config)
     {
         _config = config;
         _endLinesWithSemicolon = config.EndLinesWithSemicolon;
     }
 
-    public void WriteFromConfig()
+    public void Generate()
     {
-        var typeScriptFolders = GetNamespaceDataGrouped();
-        var outputDir = Path.Combine(_config.ProjectDir, "output");
+        CSharpCompilation compilation = GetCompilation();
+        var typeScriptFolders = GetTypeScriptFolders(compilation);
+        var outputDir = _config.Output;
         Log.Information("Writing to {OutputDir}", outputDir);
 
         if (_config.NameSpaceInOneFile)
         {
-            WriteAllFilesIntoOneFile();
+            WriteAllFilesIntoOneFile(typeScriptFolders);
             return;
         }
 
@@ -74,10 +75,10 @@ public class WriterService
         WriteExportsForIndexFile(typeScriptFolder.Files, path);
     }
 
-    private void WriteAllFilesIntoOneFile()
+    private void WriteAllFilesIntoOneFile(IEnumerable<TypeScriptFolder> typeScriptFolders)
     {
-        var typeScriptFolders = GetNamespaceDataGrouped();
-        var outputDir = Path.Combine(_config.ProjectDir, "output\\");
+        // var typeScriptFolders = GetTypeScriptFolders();
+        var outputDir = _config.Output;
         var fileInfo = new FileInfo($"{outputDir}all.ts");
         using FileStream fs = fileInfo.CreateFileSafe();
         var types = typeScriptFolders.SelectMany(x => x.Files).SelectMany(x => x.Types);
@@ -169,15 +170,16 @@ public class WriterService
         return $"export * from './{fileName}'";
     }
 
-    private IEnumerable<TypeScriptFolder> GetNamespaceDataGrouped()
+    private CSharpCompilation GetCompilation()
     {
-        return _config.NameSpaces
-            .SelectMany(configNameSpaceWithPath =>
-            {
-                var @classes = configNameSpaceWithPath.GetClassDeclarationsForNamespace(_config);
-                return @classes.Select(CreateTypeScriptFileConfig);
-            })
-            // .GroupBy(x => x.NameSpace)
+        var syntaxTrees = _config.Directory.GetSyntaxTrees();
+        return syntaxTrees.CreateCompilation();
+    }
+
+    private IEnumerable<TypeScriptFolder> GetTypeScriptFolders(CSharpCompilation compilation)
+    {
+        return _config.Directory
+            .GetTypeScriptFilesForDirectory(_config, compilation)
             .GroupBy(x => x.PathFromParentNamespace)
             .Select(
                 x =>
@@ -187,20 +189,6 @@ public class WriterService
                         Files = x
                     }
             );
-    }
-
-    private TypeScriptFile CreateTypeScriptFileConfig(NameSpaceWithNodesAndFileName @namespace)
-    {
-        string fileName = @namespace.FileName;
-        // string nameSpace = @namespace.NameSpace.Name;
-        string pathFromParentNamespace = @namespace.PathFromParentNamespace;
-        var types = @namespace.Nodes.Select(c => c.MapToTypeScriptType(_config));
-        return new TypeScriptFile
-        {
-            FileName = fileName,
-            PathFromParentNamespace = pathFromParentNamespace,
-            Types = types
-        };
     }
 
     private void WriteTsFile(FileStream fs, TypeScriptType typeScriptType)

@@ -6,7 +6,7 @@ public class DotTsArchitectConfig
 {
     public DotTsArchitectConfig(
         string path,
-        ExportModelType exportModelType = ExportModelType.Type,
+        TypeModel typeModel = TypeModel.Type,
         PropertyNameCase propertyNameCase = PropertyNameCase.CamelCase,
         FileNameCase fileNameCase = FileNameCase.KebabCase,
         bool generateIndexFile = true,
@@ -15,7 +15,7 @@ public class DotTsArchitectConfig
     )
     {
         Path = path;
-        ExportModelType = exportModelType;
+        TypeModel = typeModel;
         PropertyNameCase = propertyNameCase;
         FileNameCase = fileNameCase;
         GenerateIndexFile = generateIndexFile;
@@ -26,7 +26,7 @@ public class DotTsArchitectConfig
     public DotTsArchitectConfig()
     {
         Path = "src";
-        ExportModelType = ExportModelType.Type;
+        TypeModel = TypeModel.Type;
         PropertyNameCase = PropertyNameCase.CamelCase;
         FileNameCase = FileNameCase.KebabCase;
     }
@@ -34,7 +34,7 @@ public class DotTsArchitectConfig
     public string Path { get; set; }
     public string? TypeNamePrefix { get; set; }
     public string? TypeNameSuffix { get; set; }
-    public ExportModelType ExportModelType { get; set; }
+    public TypeModel TypeModel { get; set; }
     public PropertyNameCase PropertyNameCase { get; set; }
     public FileNameCase FileNameCase { get; set; }
     public NullableType NullableType { get; set; }
@@ -68,7 +68,7 @@ public static class FolderNameCaseExtensions
     }
 }
 
-public enum ExportModelType
+public enum TypeModel
 {
     Type,
     Interface
@@ -76,14 +76,14 @@ public enum ExportModelType
 
 public static class ExportModelTypeExtensions
 {
-    public static ExportModelType ToExportModelType(this string exportModelType)
+    public static TypeModel ToExportModelType(this string exportModelType)
     {
         return exportModelType switch
         {
-            "Type" => ExportModelType.Type,
-            "type" => ExportModelType.Type,
-            "Interface" => ExportModelType.Interface,
-            "interface" => ExportModelType.Interface,
+            "Type" => TypeModel.Type,
+            "type" => TypeModel.Type,
+            "Interface" => TypeModel.Interface,
+            "interface" => TypeModel.Interface,
             _
                 => throw new ArgumentOutOfRangeException(
                     nameof(exportModelType),

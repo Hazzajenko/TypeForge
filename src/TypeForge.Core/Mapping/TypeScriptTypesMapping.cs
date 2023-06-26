@@ -1,6 +1,7 @@
 ﻿using System.Net.NetworkInformation;
 using TypeForge.Core.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Serilog;
 using TypeForge.Core.Configuration;
@@ -25,22 +26,55 @@ public static class TypeScriptTypesMapping
                 string propertyName = property.Identifier.ValueText.ToCaseOfOption(
                     config.PropertyNameCase
                 );
-                if (propertyName == "nullableName")
-                {
-                    Log.Information("Nullable name");
-                }
-                string propertyType = request.GetTypeFromCompilation(
+                (string Value, bool Nullable) propertyResult = request.GetTypeFromCompilation(
                     property,
                     config.Compilation,
                     config.NullableType
                 );
-                return new TypeProperty { Name = propertyName, Type = propertyType };
+
+                if (propertyResult.Nullable)
+                {
+                    propertyName = $"{propertyName}?";
+                }
+                return new TypeProperty { Name = propertyName, Type = propertyResult.Value };
             });
 
         return new TypeScriptType { Name = typeName, Properties = properties };
     }
 
-    private static string GetTypeFromCompilation(
+    public static TypeScriptType MapToTypeScriptType(
+        this ClassDeclarationSyntax request,
+        InputGlobalConfig config,
+        CSharpCompilation compilation
+    )
+    {
+        string typeName = request.Identifier.Text.GetTypeName(config);
+
+        var properties = request
+            .DescendantNodes()
+            .OfType<PropertyDeclarationSyntax>()
+            .Select(property =>
+            {
+                string propertyName = property.Identifier.ValueText.ToCaseOfOption(
+                    config.PropertyNameCase
+                );
+                (string Value, bool Nullable) propertyResult = request.GetTypeFromCompilation(
+                    property,
+                    compilation,
+                    config.NullableType
+                );
+                if (propertyResult.Nullable)
+                {
+                    Log.Information("Nullable name propertyResult");
+                    propertyName = $"{propertyName}?";
+                }
+                return new TypeProperty { Name = propertyName, Type = propertyResult.Value };
+            });
+
+        return new TypeScriptType { Name = typeName, Properties = properties };
+    }
+
+    private static (string Value, bool Nullable) GetTypeFromCompilation(
         this ClassDeclarationSyntax typeSyntax,
         PropertyDeclarationSyntax property,
         Compilation compilation,
@@ -50,33 +84,40 @@ public static class TypeScriptTypesMapping
         Compilation comp = compilation.AddSyntaxTrees(typeSyntax.SyntaxTree);
         SemanticModel semanticModel = comp.GetSemanticModel(typeSyntax.SyntaxTree);
         var kindText = property.Type.Kind().ToString();
-        ITypeSymbol? typeSymbol = semanticModel.GetTypeInfo(property.Type).Type;
+        ITypeSymbol? typeSymbol = ModelExtensions.GetTypeInfo(semanticModel, property.Type).Type;
         var typeSymbolName = typeSymbol!.Name;
 
         if (kindText == "NullableType")
         {
-            return typeSymbol.HandleNullable(nullableType);
+            return new() { Value = typeSymbol.HandleNullable(nullableType), Nullable = true, };
+            // return typeSymbol.HandleNullable(nullableType);
         }
-        //
-        // if (typeSymbolName == "Nullable")
-        // {
-        //     return typeSymbol.HandleNullable(nullableType);
-        // }
 
         if (typeSymbolName == "String")
         {
             if (kindText == "NullableType")
             {
-                return typeSymbolName.Convert(new NullableTypeOptions(nullableType));
+                return new()
+                {
+                    Value = typeSymbolName.Convert(new NullableTypeOptions(nullableType)),
+                    Nullable = true,
+                };
+                // return typeSymbolName.Convert(new NullableTypeOptions(nullableType));
             }
         }
 
         if (typeSymbolName == "IEnumerable")
         {
-            return typeSymbol.HandleList();
+            return new()
+            {
+                Value = typeSymbol.HandleList(new NullableTypeOptions(nullableType)),
+                Nullable = false,
+            };
+            // return typeSymbol.HandleList();
         }
 
-        return typeSymbolName.Convert();
+        return new() { Value = typeSymbolName.Convert(), Nullable = false, };
+        // return typeSymbolName.Convert();
     }
 
     private static string HandleNullable(this ITypeSymbol typeSymbol, NullableType nullableType)

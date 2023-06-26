@@ -17,6 +17,13 @@ public class NameSpaceWithNodesAndFileName
     public IEnumerable<ClassDeclarationSyntax> Nodes { get; set; } = default!;
 }
 
+public class sadasdA
+{
+    public string Name { get; set; } = default!;
+    public string PathRelativeToRoot { get; set; } = default!;
+    public IEnumerable<TypeScriptFileConfig> Files { get; set; } = default!;
+}
+
 public class TypeScriptFileConfig
 {
     public string NameSpace { get; set; } = default!;

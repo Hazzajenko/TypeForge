@@ -16,6 +16,16 @@ public static class TypeNameExtensions
             .ToCaseOfOption(typeNameCase);
     }
 
+    public static string GetTypeName(this string typeName, InputGlobalConfig config)
+    {
+        var typeNamePrefix = config.TypeNamePrefix;
+        var typeNameSuffix = config.TypeNameSuffix;
+        TypeNameCase typeNameCase = config.TypeNameCase;
+        return typeName
+            .AddPrefixAndSuffix(typeNamePrefix, typeNameSuffix)
+            .ToCaseOfOption(typeNameCase);
+    }
+
     // public static string GetTypeName(
     //     this string typeName,
     //     string? typeNamePrefix = null,

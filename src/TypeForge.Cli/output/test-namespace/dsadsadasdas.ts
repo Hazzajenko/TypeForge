@@ -1,4 +1,4 @@
-export type DsadsadasdasModelModel = {
+export type Dsadsadasdas = {
 	id: string
 	senderId: string
 	recipientId: string

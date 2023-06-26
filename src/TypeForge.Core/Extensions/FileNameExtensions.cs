@@ -18,6 +18,18 @@ public static class FileNameExtensions
             .AddTsExtension();
     }
 
+    public static string GetFileName(this string fileName, InputGlobalConfig config)
+    {
+        var fileNameCase = config.FileNameCase;
+        var fileNamePrefix = config.TypeNamePrefix;
+        var fileNameSuffix = config.TypeNameSuffix;
+        return fileName
+            .RemoveCsExtension()
+            .ToCaseOfOption(fileNameCase)
+            .AddPrefixAndSuffix(fileNameCase, fileNamePrefix, fileNameSuffix)
+            .AddTsExtension();
+    }
+
     public static string GetFileName(
         this string fileName,
         FileNameCase option,

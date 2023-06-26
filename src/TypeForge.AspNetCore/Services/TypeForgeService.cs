@@ -1,15 +1,15 @@
 ﻿using TypeForge.Core.Configuration;
 
-namespace DotTsArchitect.AspNetCore.Services;
+namespace TypeForge.AspNetCore.Services;
 
-public class DotTsArchitectService
+public class TypeForgeService
 {
-    public DotTsArchitectService(DotTsArchitectConfig config)
+    public TypeForgeService(DotTsArchitectConfig config)
     {
         Path = config.Path;
         TypeNamePrefix = config.TypeNamePrefix;
         TypeNameSuffix = config.TypeNameSuffix;
-        ExportModelType = config.ExportModelType;
+        TypeModel = config.TypeModel;
         PropertyNameCase = config.PropertyNameCase;
         FileNameCase = config.FileNameCase;
     }
@@ -17,7 +17,7 @@ public class DotTsArchitectService
     public string Path { get; set; }
     public string? TypeNamePrefix { get; set; }
     public string? TypeNameSuffix { get; set; }
-    public ExportModelType ExportModelType { get; set; }
+    public TypeModel TypeModel { get; set; }
     public PropertyNameCase PropertyNameCase { get; set; }
     public FileNameCase FileNameCase { get; set; }
 }

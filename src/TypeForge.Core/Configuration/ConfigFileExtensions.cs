@@ -87,7 +87,7 @@ public static class ConfigFileExtensions
             FolderNameCase = configFile.FolderNameCase.ToFolderNameCase(),
             TypeNamePrefix = configFile.TypeNamePrefix,
             TypeNameSuffix = configFile.TypeNameSuffix,
-            ExportModelType = configFile.ExportModelType.ToExportModelType(),
+            TypeModel = configFile.TypeModel.ToExportModelType(),
             TypeNameCase = configFile.TypeNameCase.ToTypeNameCase(),
             PropertyNameCase = configFile.PropertyNameCase.ToPropertyNameCase(),
             FileNameCase = configFile.FileNameCase.ToFileNameCase(),

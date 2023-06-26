@@ -18,7 +18,7 @@ public class GlobalConfig
     public string? TypeNameSuffix { get; set; }
     public string? FileNamePrefix { get; set; }
     public string? FileNameSuffix { get; set; }
-    public ExportModelType ExportModelType { get; set; } = ExportModelType.Type;
+    public TypeModel TypeModel { get; set; } = TypeModel.Type;
     public TypeNameCase TypeNameCase { get; set; } = TypeNameCase.PascalCase;
 
     public PropertyNameCase PropertyNameCase { get; set; } = PropertyNameCase.CamelCase;
@@ -43,7 +43,7 @@ public class ConfigFile
     public string? FileNamePrefix { get; set; }
     public string? FileNameSuffix { get; set; }
     public string FileNameCase { get; set; } = "KebabCase";
-    public string ExportModelType { get; set; } = "Type";
+    public string TypeModel { get; set; } = "Type";
     public string TypeNameCase { get; set; } = "PascalCase";
     public string PropertyNameCase { get; set; } = "CamelCase";
     public string NullableType { get; set; } = "QuestionMark";

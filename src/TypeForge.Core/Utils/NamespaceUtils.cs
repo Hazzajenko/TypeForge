@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Serilog;
 using TypeForge.Core.Configuration;
+using TypeForge.Core.Mapping;
 using TypeForge.Core.Models;
 
 namespace TypeForge.Core.Utils;
@@ -23,6 +24,16 @@ public static class NamespaceUtils
     }
 
     // ConfigNameSpaceWithPath
+
+    public static IEnumerable<SyntaxTree> GetSyntaxTrees(this string directoryPath)
+    {
+        var filesInNamespace = Directory.GetFiles(
+            directoryPath,
+            "*.cs",
+            SearchOption.AllDirectories
+        );
+        return filesInNamespace.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file)));
+    }
 
     public static SyntaxTree[] GetSyntaxTrees(this ConfigNameSpaceWithPath[] nameSpaces)
     {
@@ -121,20 +132,10 @@ public static class NamespaceUtils
         string fileName
     )
     {
-        // Log.Logger.Information("File location {FileLocation}", fileLocation);
-        // Log.Logger.Information("ParentNamespace {ParentNamespace}", parentNamespace);
-        // Log.Logger.Information("FileName {FileName}", fileName);
         var splitFromNamespace = fileLocation.Split(parentNamespace)[1];
-        // Log.Logger.Information("Split from namespace {Split}", splitFromNamespace);
         var path = fileLocation.Replace(splitFromNamespace, "");
-        // Log.Logger.Information("Path {Path}", path);
         var takeOutFileName = path.Replace(fileName, "");
-
-        Log.Logger.Information("Take out file name {TakeOut}", takeOutFileName);
-
         var split = takeOutFileName.Split("\\")[takeOutFileName.Split("\\").Length - 1];
-
-        Log.Logger.Information("Split {Split}", split);
         return split;
     }
 
@@ -147,6 +148,33 @@ public static class NamespaceUtils
         // Log.Logger.Information("Split {Split}", split);
         // Log.Logger.Information("File name {FileName}", fileName);
         return fileName;
+    }
+
+    public static IEnumerable<TypeScriptFile> GetTypeScriptFilesForDirectory(
+        this string directory,
+        InputGlobalConfig config,
+        CSharpCompilation compilation
+    )
+    {
+        var filesInNamespace = Directory.GetFiles(directory, "*.cs", SearchOption.AllDirectories);
+
+        return filesInNamespace.Select(file =>
+        {
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(File.ReadAllText(file));
+            var root = (CompilationUnitSyntax)tree.GetRoot();
+            var fileName = file.GetFileNameFromPath();
+            var pathRelativeToRoot = file.GetPathFromParentNamespace(directory, fileName);
+            fileName = fileName.GetFileName(config);
+            var types = root.DescendantNodes()
+                .OfType<ClassDeclarationSyntax>()
+                .Select(x => x.MapToTypeScriptType(config, compilation));
+            return new TypeScriptFile
+            {
+                FileName = fileName,
+                PathFromParentNamespace = pathRelativeToRoot,
+                Types = types
+            };
+        });
     }
 
     public static ClassDeclarationSyntax[] GetClassDeclarations(
