@@ -1,8 +1,10 @@
 ﻿using DotTsArchitect.Core.Configuration;
+using DotTsArchitect.Core.Extensions;
 using DotTsArchitect.Core.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Serilog;
 
 namespace DotTsArchitect.Core.Utils;
 
@@ -75,8 +77,9 @@ public static class NamespaceUtils
         return syntaxTrees.ToArray();
     }
 
-    public static IEnumerable<NamespaceWithNodes> GetClassDeclarationsForNamespace(
-        this ConfigNameSpaceWithPath nameSpace
+    public static IEnumerable<NamespaceWithNodesAndFileName> GetClassDeclarationsForNamespace(
+        this ConfigNameSpaceWithPath nameSpace,
+        GlobalConfig config
     )
     {
         var fileLocation = nameSpace.Path;
@@ -85,13 +88,84 @@ public static class NamespaceUtils
             "*.cs",
             SearchOption.AllDirectories
         );
-        return filesInNamespace.Select(file =>
+        var namespaces = filesInNamespace.SelectMany(file =>
         {
             SyntaxTree tree = CSharpSyntaxTree.ParseText(File.ReadAllText(file));
             var root = (CompilationUnitSyntax)tree.GetRoot();
             var nodes = root.DescendantNodes().OfType<ClassDeclarationSyntax>();
-            return new NamespaceWithNodes { Namespace = nameSpace, Nodes = nodes };
+            var fileName = file.GetFileNameFromPath();
+            var pathFromParentNamespace = file.GetPathFromParentNamespace(nameSpace.Path, fileName);
+            fileName = fileName.GetFileName(config);
+            return nodes.Select(
+                node =>
+                    new NamespaceWithNodesAndFileName
+                    {
+                        Namespace = nameSpace,
+                        FileName = fileName,
+                        PathFromParentNamespace = pathFromParentNamespace,
+                        Nodes = nodes,
+                    }
+            );
         });
+
+        var namespaceDict = namespaces
+            .GroupBy(n => n.FileName)
+            .ToDictionary(g => g.Key, g => g.First());
+        var distinctNamespaces = namespaceDict.Values.ToList();
+        return distinctNamespaces;
+    }
+
+    private static string GetPathFromParentNamespace(
+        this string fileLocation,
+        string parentNamespace,
+        string fileName
+    )
+    {
+        // Log.Logger.Information("File location {FileLocation}", fileLocation);
+        Log.Logger.Information("ParentNamespace {ParentNamespace}", parentNamespace);
+        Log.Logger.Information("FileName {FileName}", fileName);
+        var splitFromNamespace = fileLocation.Split(parentNamespace)[1];
+        // Log.Logger.Information("Split from namespace {Split}", splitFromNamespace);
+        var path = fileLocation.Replace(parentNamespace, "");
+        Log.Logger.Information("Path {Path}", path);
+        var takeOutFileName = path.Replace(fileName, "");
+        Log.Logger.Information("Take out file name {TakeOut}", takeOutFileName);
+        return takeOutFileName;
+    }
+
+    private static string GetFileNameFromPath(this string path)
+    {
+        var split = path.Split("\\");
+        var fileName = split[split.Length - 1];
+        //
+        // Log.Logger.Information("Path {Path}", path);
+        // Log.Logger.Information("Split {Split}", split);
+        // Log.Logger.Information("File name {FileName}", fileName);
+        return fileName;
+    }
+
+    public static ClassDeclarationSyntax[] GetClassDeclarations(
+        this ConfigNameSpaceWithPath[] nameSpaces
+    )
+    {
+        var paths = nameSpaces.Select(x => x.Path);
+        var classList = paths.SelectMany(fileLocation =>
+        {
+            var filesInNamespace = Directory.GetFiles(
+                fileLocation,
+                "*.cs",
+                SearchOption.AllDirectories
+            );
+
+            return filesInNamespace.Select(file =>
+            {
+                SyntaxTree tree = CSharpSyntaxTree.ParseText(File.ReadAllText(file));
+                var root = (CompilationUnitSyntax)tree.GetRoot();
+                return root.DescendantNodes().OfType<ClassDeclarationSyntax>();
+            });
+        });
+
+        return classList.SelectMany(x => x).ToArray();
     }
 
     public static ClassDeclarationSyntax[] GetClassDeclarations(this ConfigNameSpace[] nameSpaces)

@@ -67,7 +67,8 @@ public static class TypeConverter3
             { typeof(string), "string" },
             { typeof(int), "number" },
             { typeof(DateTime), "string" },
-            { typeof(DateOnly), "string" }
+            { typeof(DateOnly), "string" },
+            { typeof(Boolean), "boolean" }
         };
 
     private static readonly Dictionary<string, string> StringTypeMap =
@@ -76,7 +77,8 @@ public static class TypeConverter3
             { "String", "string" },
             { "Int32", "number" },
             { "DateTime", "string" },
-            { "DateOnly", "string" }
+            { "DateOnly", "string" },
+            { "Boolean", "boolean" }
         };
 
     /*

@@ -6,26 +6,6 @@ namespace DotTsArchitect.Core.Extensions;
 
 public static class StringExtensions
 {
-    
-    public static string ToCaseOfOption(this string s, PropertyNameCase option)
-    {
-        return option switch
-        {
-            PropertyNameCase.CamelCase => s.ToCamelCase(),
-            PropertyNameCase.PascalCase => s.ToPascalCase(),
-            _ => throw new ArgumentOutOfRangeException(nameof(option), option, null)
-        };
-    }
-    public static string ToCaseOfOption(this string s, FileNameCase option)
-    {
-        return option switch
-        {
-            FileNameCase.CamelCase => s.ToCamelCase(),
-            FileNameCase.PascalCase => s.ToPascalCase(),
-            FileNameCase.KebabCase => s.ToKebabCase(),
-            _ => throw new ArgumentOutOfRangeException(nameof(option), option, null)
-        };
-    }
     public static string ToCamelCase(this string s)
     {
         var x = s.Replace("_", "");
@@ -46,7 +26,7 @@ public static class StringExtensions
 
         return Regex.Replace(str, @"([a-z0-9])([A-Z])", "$1-$2", RegexOptions.Compiled).ToLower();
     }
-    
+
     public static string ToPascalCase(this string s)
     {
         var x = s.Replace("_", "");
@@ -59,8 +39,6 @@ public static class StringExtensions
         );
         return char.ToUpper(x[0]) + x.Substring(1);
     }
-    
-    
 
     public static string ToPrettyJson<T>(this T obj)
     {
