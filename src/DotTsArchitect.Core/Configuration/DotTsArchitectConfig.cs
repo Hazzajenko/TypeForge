@@ -37,6 +37,7 @@ public class DotTsArchitectConfig
     public ExportModelType ExportModelType { get; set; }
     public PropertyNameCase PropertyNameCase { get; set; }
     public FileNameCase FileNameCase { get; set; }
+    public NullableType NullableType { get; set; }
     public bool GenerateIndexFile { get; set; }
     public bool GroupByNamespace { get; set; }
     public bool FilePerNamespace { get; set; }
@@ -93,6 +94,27 @@ public static class ExportModelTypeExtensions
     }
 }
 
+public enum TypeNameCase
+{
+    CamelCase,
+    PascalCase,
+}
+
+public static class TypeNameCaseExtensions
+{
+    public static TypeNameCase ToTypeNameCase(this string typeNameCase)
+    {
+        return typeNameCase switch
+        {
+            "CamelCase" => TypeNameCase.CamelCase,
+            "camelCase" => TypeNameCase.CamelCase,
+            "PascalCase" => TypeNameCase.PascalCase,
+            "pascalCase" => TypeNameCase.PascalCase,
+            _ => throw new ArgumentOutOfRangeException(nameof(typeNameCase), typeNameCase, null)
+        };
+    }
+}
+
 public enum PropertyNameCase
 {
     CamelCase,
@@ -144,6 +166,33 @@ public static class FileNameCaseExtensions
     }
 }
 
+public enum NullableType
+{
+    None,
+    QuestionMark,
+    Null,
+    Undefined
+}
+
+public static class NullableTypeExtensions
+{
+    public static NullableType ToNullableType(this string nullableType)
+    {
+        return nullableType switch
+        {
+            "None" => NullableType.None,
+            "none" => NullableType.None,
+            "QuestionMark" => NullableType.QuestionMark,
+            "questionMark" => NullableType.QuestionMark,
+            "?" => NullableType.QuestionMark,
+            "Null" => NullableType.Null,
+            "null" => NullableType.Null,
+            "Undefined" => NullableType.Undefined,
+            "undefined" => NullableType.Undefined,
+            _ => throw new ArgumentOutOfRangeException(nameof(nullableType), nullableType, null)
+        };
+    }
+}
 
 
 /*public sealed class ExportModelType : SmartEnum<ExportModelType>

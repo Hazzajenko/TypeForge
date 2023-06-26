@@ -19,10 +19,12 @@ public class GlobalConfig
     public string? FileNamePrefix { get; set; }
     public string? FileNameSuffix { get; set; }
     public ExportModelType ExportModelType { get; set; } = ExportModelType.Type;
+    public TypeNameCase TypeNameCase { get; set; } = TypeNameCase.PascalCase;
 
     public PropertyNameCase PropertyNameCase { get; set; } = PropertyNameCase.CamelCase;
 
     public FileNameCase FileNameCase { get; set; } = FileNameCase.KebabCase;
+    public NullableType NullableType { get; set; } = NullableType.QuestionMark;
 
     public bool GenerateIndexFile { get; set; } = true;
 
@@ -42,7 +44,9 @@ public class ConfigFile
     public string? FileNameSuffix { get; set; }
     public string FileNameCase { get; set; } = "KebabCase";
     public string ExportModelType { get; set; } = "Type";
+    public string TypeNameCase { get; set; } = "PascalCase";
     public string PropertyNameCase { get; set; } = "CamelCase";
+    public string NullableType { get; set; } = "QuestionMark";
     public bool GenerateIndexFile { get; set; }
     public bool GroupByNamespace { get; set; }
     public bool FilePerNamespace { get; set; }
@@ -52,12 +56,7 @@ public class ConfigFile
 
 public class ConfigNameSpace
 {
-    // [YamlMember(Alias = "name")]
-    // [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
-
-    // [YamlMember(Alias = "output")]
-    // [JsonPropertyName("output")]
     public string Output { get; set; } = default!;
 }
 

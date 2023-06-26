@@ -36,47 +36,78 @@ public class WriterService
     {
         _config = config;
         _endLinesWithSemicolon = config.EndLinesWithSemicolon;
-        // _config = config;
     }
 
     public void WriteFromConfig()
     {
-        var data = GetNamespaceData();
-        var grouped = GetNamespaceDataGrouped();
-        grouped.DumpObjectJson();
-        var outputDir = _config.ProjectDir + "\\output";
-
-        foreach (var typeScriptFolder in grouped)
+        var typeScriptFolders = GetNamespaceDataGrouped();
+        var outputDir = Path.Combine(_config.ProjectDir, "output\\");
+        Log.Information("Writing to {OutputDir}", outputDir);
+        foreach (TypeScriptFolder typeScriptFolder in typeScriptFolders)
         {
             WriteTypeScriptFolder(typeScriptFolder, outputDir);
         }
-        //
-        // foreach (var typeScriptFile in data)
-        // {
-        //     WriteTypeScriptFile(typeScriptFile, outputDir);
-        // }
+
+        if (_config is not { GenerateIndexFile: true, GroupByNamespace: false })
+            return;
+
+        WriteExportsForIndexFile(typeScriptFolders, outputDir);
+    }
+
+    private void WriteExportsForIndexFile(
+        IEnumerable<TypeScriptFolder> typeScriptFolders,
+        string outputDir
+    )
+    {
+        string indexFile = Path.Combine(outputDir, "index.ts");
+        var indexTemplateFile = new FileInfo(indexFile);
+        using FileStream indexFs = indexTemplateFile.CreateFileSafe();
+        var linesToWrite = typeScriptFolders
+            .SelectMany(folder => folder.Files)
+            .Select(GetExportStatement);
+
+        foreach (var line in linesToWrite)
+        {
+            indexFs.WriteLine(line, _endLinesWithSemicolon);
+        }
+    }
+
+    private void WriteExportsForIndexFile(
+        IEnumerable<TypeScriptFile> typeScriptFiles,
+        string outputDir
+    )
+    {
+        string indexFile = Path.Combine(outputDir, "index.ts");
+        Log.Logger.Information("Creating index file {IndexFile}", indexFile);
+        // string indexFile = $"{outputDir}index.ts";
+        var indexTemplateFile = new FileInfo(indexFile);
+        using FileStream indexFs = indexTemplateFile.CreateFileSafe();
+
+        foreach (TypeScriptFile typeScriptFile in typeScriptFiles)
+        {
+            string fileName = typeScriptFile.FileName.TakeOutTsExtension();
+            string exportModel = $"export * from './{fileName}'";
+            indexFs.WriteLine(exportModel, _endLinesWithSemicolon);
+        }
     }
 
     private void WriteTypeScriptFolder(TypeScriptFolder typeScriptFolder, string outputDir)
     {
-        string path = outputDir + "\\" + typeScriptFolder.FolderName;
-        foreach (var typeScriptFile in typeScriptFolder.Files)
+        var path = Path.Combine(outputDir, typeScriptFolder.FolderName.TrimStart('\\'));
+        Log.Logger.Information("Creating directory {Path}", path);
+        if (_config.GroupByNamespace is false)
         {
-            WriteTypeScriptFile(typeScriptFile, outputDir);
+            path = outputDir;
+        }
+        foreach (TypeScriptFile typeScriptFile in typeScriptFolder.Files)
+        {
+            WriteTypeScriptFile(typeScriptFile, path);
         }
 
-        if (_config.GenerateIndexFile)
-        {
-            string indexFile = $"{path}index.ts";
-            FileInfo indexTemplateFile = new FileInfo(indexFile);
-            using FileStream indexFs = indexTemplateFile.CreateFileSafe();
-            foreach (var typeScriptFile in typeScriptFolder.Files)
-            {
-                string fileName = typeScriptFile.FileName.TakeOutTsExtension();
-                string exportModel = $"export * from './{fileName}'";
-                indexFs.WriteLine(exportModel, _endLinesWithSemicolon);
-            }
-        }
+        if (_config is not { GenerateIndexFile: true, GroupByNamespace: true })
+            return;
+
+        WriteExportsForIndexFile(typeScriptFolder.Files, path);
     }
 
     private void WriteTypeScriptFile(TypeScriptFile typeScriptFile, string outputDir)
@@ -88,12 +119,11 @@ public class WriterService
             typeScriptFile.Types.Count()
         );
 
-        string path = outputDir + "\\" + typeScriptFile.PathFromParentNamespace;
-        Log.Logger.Information("Creating directory {Path}", path);
+        Log.Logger.Information("Creating directory {Path}", outputDir);
 
-        FileInfo fileInfo = new FileInfo($"{path}{typeScriptFile.FileName}");
+        var fileInfo = new FileInfo($"{outputDir}{typeScriptFile.FileName}");
         using FileStream fs = fileInfo.CreateFileSafe();
-        foreach (var typeScriptType in typeScriptFile.Types)
+        foreach (TypeScriptType typeScriptType in typeScriptFile.Types)
         {
             WriteTsFile(fs, typeScriptType);
             if (typeScriptType != typeScriptFile.Types.Last())
@@ -101,6 +131,12 @@ public class WriterService
                 fs.WriteEmptyLine();
             }
         }
+    }
+
+    private static string GetExportStatement(TypeScriptFile file)
+    {
+        string fileName = file.FileName.TakeOutTsExtension();
+        return $"export * from './{fileName}'";
     }
 
     private IEnumerable<TypeScriptFile> GetNamespaceData()
@@ -137,132 +173,19 @@ public class WriterService
         };
     }
 
-    private void WriteTsFilesForNamespace(NamespaceWithNodesAndFileName @namespace)
-    {
-        string fileName = @namespace.FileName.GetFileName(_config);
-        string file =
-            $"{@namespace.Namespace.Path}\\Generated\\{@namespace.PathFromParentNamespace}\\{fileName}";
-        var classes = @namespace.Nodes;
-        FileInfo componentTemplateFile = new FileInfo(file);
-        using FileStream fs = componentTemplateFile.CreateFileSafe();
-        foreach (var classDeclarationSyntax in classes)
-        {
-            WriteTsFile(fs, classDeclarationSyntax);
-            if (classDeclarationSyntax != classes.Last())
-            {
-                fs.WriteEmptyLine();
-            }
-        }
-
-        if (_config.GenerateIndexFile)
-        {
-            string indexFile =
-                $"{@namespace.Namespace.Path}\\Generated\\{@namespace.PathFromParentNamespace}\\index.ts";
-            FileInfo indexTemplateFile = new FileInfo(indexFile);
-            using FileStream indexFs = indexTemplateFile.CreateFileSafe();
-            foreach (var classDeclarationSyntax in classes)
-            {
-                string typeName = classDeclarationSyntax.Identifier.Text.GetTypeName(_config);
-                string exportModel = $"export * from './{typeName}'";
-                indexFs.WriteLine(exportModel, _endLinesWithSemicolon);
-            }
-        }
-    }
-
     private void WriteTsFile(FileStream fs, TypeScriptType typeScriptType)
     {
-        var exportModel = GetExportModelType(_config.ExportModelType, typeScriptType.Name);
+        var exportModel = GetExportModelType(typeScriptType.Name);
         fs.WriteLine(exportModel, false);
 
         foreach (var typeProperty in typeScriptType.Properties)
         {
-            var property = $"{typeProperty.Name}: {typeProperty.Type};";
+            var property = $"{typeProperty.Name}: {typeProperty.Type}";
             fs.WriteLineWithTab(property, _endLinesWithSemicolon);
         }
 
         fs.WriteLine("}", false);
     }
-
-    private void WriteTsFile(FileStream fs, ClassDeclarationSyntax classDeclarationSyntax)
-    {
-        var typeName = classDeclarationSyntax.Identifier.Text.GetTypeName(_config);
-        var exportModel = GetExportModelType(_config.ExportModelType, typeName);
-        fs.WriteLine(exportModel, false);
-
-        foreach (
-            var property in classDeclarationSyntax
-                .DescendantNodes()
-                .OfType<PropertyDeclarationSyntax>()
-        )
-        {
-            string name = property.Identifier.ValueText.ToCaseOfOption(_config.PropertyNameCase);
-            var comp = _config.Compilation.AddSyntaxTrees(classDeclarationSyntax.SyntaxTree);
-            var semanticModel = comp.GetSemanticModel(classDeclarationSyntax.SyntaxTree);
-            var typeSymbol = semanticModel.GetTypeInfo(property.Type).Type;
-            var typeSymbolName = typeSymbol!.Name;
-            string type = typeSymbolName.Convert();
-            fs.WriteLine($"\t{name}: {type};", _endLinesWithSemicolon);
-        }
-
-        fs.WriteLine("}", false);
-    }
-
-    public void Write(WriteRequest request)
-    {
-        string path = request.Options.Path;
-        string fileName = request.Type.Name.ToCaseOfOption(request.Options.FileNameCase);
-        string file = $"{path}\\{fileName}.ts";
-        FileInfo componentTemplateFile = new FileInfo(file);
-        using FileStream fs = componentTemplateFile.Create();
-        var typeName = request.Type.Name;
-        var exportModel = GetExportModelType(request.Options.ExportModelType, typeName);
-        fs.WriteLine(exportModel, false);
-
-        foreach (var property in request.Type.GetProperties())
-        {
-            string name = property.Name.ToCaseOfOption(request.Options.PropertyNameCase);
-            string type = property.PropertyType.Convert();
-            fs.WriteLine($"\t{name}: {type};", _endLinesWithSemicolon);
-        }
-
-        fs.WriteLine("}", false);
-    }
-
-    // public void WriteFile(ClassDeclarationSyntax @class) { }
-
-    public void WriteNamespaceRequest(WriteNamespaceRequest request)
-    {
-        string path = request.Options.Path;
-        string fileName = request.Type.Identifier.Text.ToCaseOfOption(request.Options.FileNameCase);
-        // string fileName = request.Type.Name.ToCaseOfOption(request.Options.FileNameCase);
-        string file = $"{path}\\{fileName}.ts";
-        FileInfo componentTemplateFile = new FileInfo(file);
-        using FileStream fs = componentTemplateFile.Create();
-        var typeName = request.Type.Identifier.Text;
-        var exportModel = GetExportModelType(request.Options.ExportModelType, typeName);
-        fs.WriteLine(exportModel, false);
-
-        foreach (var property in request.Type.DescendantNodes().OfType<PropertyDeclarationSyntax>())
-        {
-            string name = property.Identifier.ValueText.ToCaseOfOption(
-                request.Options.PropertyNameCase
-            );
-            var semanticModel = _config.Compilation.GetSemanticModel(request.Type.SyntaxTree);
-            var typeSymbol = semanticModel.GetTypeInfo(property.Type).Type;
-            var typeSymbolName = typeSymbol!.Name;
-            typeSymbolName.Log();
-            string type = typeSymbolName.Convert();
-            fs.WriteLine($"\t{name}: {type};", _endLinesWithSemicolon);
-        }
-
-        fs.WriteLine("}", false);
-    }
-
-    // private void WriteLine(FileStream fileStream, string content)
-    // {
-    //     Byte[] txt = new UTF8Encoding(true).GetBytes(content + Environment.NewLine);
-    //     fileStream.Write(txt, 0, txt.Length);
-    // }
 
     private string GetExportModelType(ExportModelType exportModelType, string typeName)
     {
@@ -282,20 +205,23 @@ public class WriterService
         };
     }
 
-    private string GetTypeFromCompilation(
-        ClassDeclarationSyntax typeSyntax,
-        PropertyDeclarationSyntax property
-    )
+    private string GetExportModelType(string typeName)
     {
-        var comp = _config.Compilation.AddSyntaxTrees(typeSyntax.SyntaxTree);
-        var semanticModel = comp.GetSemanticModel(typeSyntax.SyntaxTree);
-        var typeSymbol = semanticModel.GetTypeInfo(property.Type).Type;
-        var typeSymbolName = typeSymbol!.Name;
-        return typeSymbolName.Convert();
+        ExportModelType exportModelType = _config.ExportModelType;
+        typeName = typeName.GetTypeName(_config);
+        string exportTypeString = $"export type {typeName} = {{";
+        string exportInterfaceString = $"export interface {typeName} {{";
+
+        return exportModelType switch
+        {
+            ExportModelType.Type => exportTypeString,
+            ExportModelType.Interface => exportInterfaceString,
+            _
+                => throw new ArgumentOutOfRangeException(
+                    nameof(exportModelType),
+                    exportModelType,
+                    null
+                )
+        };
     }
 }
-// var comp = _config.Compilation.AddSyntaxTrees(classDeclarationSyntax.SyntaxTree);
-// var semanticModel = comp.GetSemanticModel(classDeclarationSyntax.SyntaxTree);
-// var typeSymbol = semanticModel.GetTypeInfo(property.Type).Type;
-// var typeSymbolName = typeSymbol!.Name;
-// string type = typeSymbolName.Convert();

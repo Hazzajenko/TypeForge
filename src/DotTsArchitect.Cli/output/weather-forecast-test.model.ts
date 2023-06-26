@@ -1,7 +1,7 @@
-export type weatherForecastTestModel = {
-	testDate: string;
-	testTemperatureC: number;
-	testTemperatureF: number;
-	testSummary: string;
+export type WeatherForecastTestModelModel = {
+	testDate: string
+	testTemperatureC: number
+	testTemperatureF: number
+	testSummary: string | undefined
 }
 

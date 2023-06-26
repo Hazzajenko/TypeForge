@@ -20,9 +20,8 @@ public class NamespaceWithNodesAndFileName
 public class TypeScriptFolder
 {
     public string FolderName { get; set; } = default!;
-
-    // public string PathFromParentNamespace { get; set; } = default!;
     public IEnumerable<TypeScriptFile> Files { get; set; } = default!;
+    // public List<TypeScriptFolder> ChildFolders { get; set; } = default!;
 }
 
 public class TypeScriptFile

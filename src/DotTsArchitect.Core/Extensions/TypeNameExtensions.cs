@@ -6,25 +6,24 @@ namespace DotTsArchitect.Core.Extensions;
 
 public static class TypeNameExtensions
 {
-    
-    public static string GetTypeName(
-        this string typeName,
-        GlobalConfig config
-    )
+    public static string GetTypeName(this string typeName, GlobalConfig config)
     {
         var typeNamePrefix = config.TypeNamePrefix;
         var typeNameSuffix = config.TypeNameSuffix;
-        return typeName.AddPrefixAndSuffix(typeNamePrefix, typeNameSuffix);
+        TypeNameCase typeNameCase = config.TypeNameCase;
+        return typeName
+            .AddPrefixAndSuffix(typeNamePrefix, typeNameSuffix)
+            .ToCaseOfOption(typeNameCase);
     }
 
-    public static string GetTypeName(
-        this string typeName,
-        string? typeNamePrefix = null,
-        string? typeNameSuffix = null
-    )
-    {
-        return typeName.AddPrefixAndSuffix(typeNamePrefix, typeNameSuffix);
-    }
+    // public static string GetTypeName(
+    //     this string typeName,
+    //     string? typeNamePrefix = null,
+    //     string? typeNameSuffix = null
+    // )
+    // {
+    //     return typeName.AddPrefixAndSuffix(typeNamePrefix, typeNameSuffix);
+    // }
 
     private static string AddPrefixAndSuffix(
         this string typeName,
@@ -43,6 +42,16 @@ public static class TypeNameExtensions
         }
 
         return typeName;
+    }
+
+    public static string ToCaseOfOption(this string s, TypeNameCase option)
+    {
+        return option switch
+        {
+            TypeNameCase.CamelCase => s.ToCamelCase(),
+            TypeNameCase.PascalCase => s.ToPascalCase(),
+            _ => throw new ArgumentOutOfRangeException(nameof(option), option, null)
+        };
     }
 
     public static string ToCaseOfOption(this string s, PropertyNameCase option)
