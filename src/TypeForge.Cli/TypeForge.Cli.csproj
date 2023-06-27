@@ -5,7 +5,7 @@
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <PackageOutputPath>./nupkg</PackageOutputPath>
         <PackAsTool>true</PackAsTool>
         <ToolCommandName>forge</ToolCommandName>
         <Description>Tool to generate typescript types from your c# project</Description>
@@ -27,10 +27,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\TypeForge.Core\TypeForge.Core.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="output\" />
     </ItemGroup>
 
 </Project>

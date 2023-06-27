@@ -11,36 +11,36 @@ namespace TypeForge.Core.Mapping;
 
 public static class TypeScriptTypesMapping
 {
-    public static TypeScriptType MapToTypeScriptType(
-        this ClassDeclarationSyntax request,
-        GlobalConfig config
-    )
-    {
-        string typeName = request.Identifier.Text.GetTypeName(config);
-
-        var properties = request
-            .DescendantNodes()
-            .OfType<PropertyDeclarationSyntax>()
-            .Select(property =>
-            {
-                string propertyName = property.Identifier.ValueText.ToCaseOfOption(
-                    config.PropertyNameCase
-                );
-                (string Value, bool Nullable) propertyResult = request.GetTypeFromCompilation(
-                    property,
-                    config.Compilation,
-                    config.NullableType
-                );
-
-                if (propertyResult.Nullable)
-                {
-                    propertyName = $"{propertyName}?";
-                }
-                return new TypeProperty { Name = propertyName, Type = propertyResult.Value };
-            });
-
-        return new TypeScriptType { Name = typeName, Properties = properties };
-    }
+    // public static TypeScriptType MapToTypeScriptType(
+    //     this ClassDeclarationSyntax request,
+    //     GlobalConfig config
+    // )
+    // {
+    //     string typeName = request.Identifier.Text.GetTypeName(config);
+    //
+    //     var properties = request
+    //         .DescendantNodes()
+    //         .OfType<PropertyDeclarationSyntax>()
+    //         .Select(property =>
+    //         {
+    //             string propertyName = property.Identifier.ValueText.ToCaseOfOption(
+    //                 config.PropertyNameCase
+    //             );
+    //             (string Value, bool Nullable) propertyResult = request.GetTypeFromCompilation(
+    //                 property,
+    //                 config.Compilation,
+    //                 config.NullableType
+    //             );
+    //
+    //             if (propertyResult.Nullable)
+    //             {
+    //                 propertyName = $"{propertyName}?";
+    //             }
+    //             return new TypeProperty { Name = propertyName, Type = propertyResult.Value };
+    //         });
+    //
+    //     return new TypeScriptType { Name = typeName, Properties = properties };
+    // }
 
     public static TypeScriptType MapToTypeScriptType(
         this ClassDeclarationSyntax request,
@@ -66,6 +66,37 @@ public static class TypeScriptTypesMapping
                 if (propertyResult.Nullable)
                 {
                     Log.Information("Nullable name propertyResult");
+                    propertyName = $"{propertyName}?";
+                }
+                return new TypeProperty { Name = propertyName, Type = propertyResult.Value };
+            });
+
+        return new TypeScriptType { Name = typeName, Properties = properties };
+    }
+
+    public static TypeScriptType MapToTypeScriptType(
+        this ClassDeclarationSyntax request,
+        TypeForgeConfig config,
+        CSharpCompilation compilation
+    )
+    {
+        string typeName = request.Identifier.Text.GetTypeName(config);
+
+        var properties = request
+            .DescendantNodes()
+            .OfType<PropertyDeclarationSyntax>()
+            .Select(property =>
+            {
+                string propertyName = property.Identifier.ValueText.ToCaseOfOption(
+                    config.PropertyNameCase
+                );
+                (string Value, bool Nullable) propertyResult = request.GetTypeFromCompilation(
+                    property,
+                    compilation,
+                    config.NullableType
+                );
+                if (propertyResult.Nullable && config.NullableType == NullableType.QuestionMark)
+                {
                     propertyName = $"{propertyName}?";
                 }
                 return new TypeProperty { Name = propertyName, Type = propertyResult.Value };

@@ -1,63 +1,79 @@
-﻿using System.Runtime.InteropServices.ComTypes;
+﻿using System.Reflection;
 using System.Text;
-using TypeForge.Core.Extensions;
-using TypeForge.Core.Mapping;
-using TypeForge.Core.Utils;
-using Microsoft.CodeAnalysis;
+using AngleSharp;
+using AngleSharp.Dom;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.Extensions.Options;
 using Serilog;
+using TypeForge.AspNetCore.Extensions;
 using TypeForge.Core.Configuration;
+using TypeForge.Core.Extensions;
 using TypeForge.Core.Models;
+using TypeForge.Core.StartUp;
+using TypeForge.Core.Utils;
 
-namespace TypeForge.Core.Services;
+namespace TypeForge.AspNetCore.Services;
 
-public class WriterService
+public class TypeForgeUiService
 {
     private readonly TypeForgeConfig _config;
+
+    private readonly ILogger _logger;
     private readonly bool _endLinesWithSemicolon;
     private readonly bool _generateIndexFile;
     private readonly bool _groupByNamespace;
     private readonly bool _nameSpaceInOneFile;
 
-    public WriterService(TypeForgeConfig config)
+    // private readonly T
+    public string Html { get; set; } = default!;
+    private IDocument? _document;
+
+    public TypeForgeUiService(TypeForgeConfig config)
     {
         _config = config;
-        _endLinesWithSemicolon = config.EndLinesWithSemicolon;
-        _generateIndexFile = config.GenerateIndexFile;
-        _groupByNamespace = config.GroupByNamespace;
-        _nameSpaceInOneFile = config.NameSpaceInOneFile;
+        _endLinesWithSemicolon = _config.EndLinesWithSemicolon;
+        _generateIndexFile = _config.GenerateIndexFile;
+        _groupByNamespace = _config.GroupByNamespace;
+        _nameSpaceInOneFile = _config.NameSpaceInOneFile;
+        _logger = Log.Logger.ForContext<TypeForgeUiService>();
     }
 
-    public void WriteFromConfig()
+    public string FetchHtmlFromDocument()
     {
+        if (_document is null)
+        {
+            throw new NullReferenceException("Document is null");
+        }
+
+        return _document.DocumentElement.OuterHtml;
+    }
+
+    public async void WriteFromConfig()
+    {
+        IConfiguration config = AngleSharp.Configuration.Default;
+        IBrowsingContext context = BrowsingContext.New(config);
+
+        string html = await GetIndexHtml();
+        IDocument document = await context.OpenAsync(req => req.Content(html));
+
         CSharpCompilation compilation = GetCompilation();
         var typeScriptFolders = GetTypeScriptFolders(compilation);
         var outputDir = Path.Combine(_config.ProjectDir, "output");
         Log.Information("Writing to {OutputDir}", outputDir);
 
-        if (_nameSpaceInOneFile)
-        {
-            WriteAllFilesIntoOneFile();
-            return;
-        }
+        document = WriteAllFilesIntoHtml(document, typeScriptFolders);
+        var updatedDoc = document.DocumentElement.OuterHtml;
+        _logger.Information("{Html}", updatedDoc);
+        _document = document;
+    }
 
-        foreach (TypeScriptFolder typeScriptFolder in typeScriptFolders)
-        {
-            WriteTypeScriptFolder(typeScriptFolder, outputDir);
-        }
-
-        if (_generateIndexFile)
-        {
-            var stringNames = typeScriptFolders.Select(x => $"{x.FolderName}/index").ToArray();
-            WriteExportsForIndexFile(stringNames, outputDir);
-        }
-
-        if (_config is not { GenerateIndexFile: true, GroupByNamespace: false })
-            return;
-
-        WriteExportsForIndexFile(typeScriptFolders, outputDir);
+    private async Task<string> GetIndexHtml()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        ArgumentNullException.ThrowIfNull(assembly);
+        string resourceName = $"{assembly.GetName().Name}.Ui.index.html";
+        await using Stream stream = assembly.GetManifestResourceStream(resourceName)!;
+        using StreamReader reader = new StreamReader(stream);
+        return await reader.ReadToEndAsync();
     }
 
     private void WriteTypeScriptFolder(TypeScriptFolder typeScriptFolder, string outputDir)
@@ -78,29 +94,46 @@ public class WriterService
         WriteExportsForIndexFile(typeScriptFolder.Files, path);
     }
 
-    private void WriteAllFilesIntoOneFile()
+    private IDocument WriteAllFilesIntoHtml(
+        IDocument document,
+        IEnumerable<TypeScriptFolder> typeScriptFolders
+    )
     {
-        CSharpCompilation compilation = GetCompilation();
-        var typeScriptFolders = GetTypeScriptFolders(compilation);
-        // var typeScriptFolders = GetNamespaceDataGrouped();
-        var outputDir = Path.Combine(_config.ProjectDir, "output\\");
-        var fileInfo = new FileInfo($"{outputDir}all.ts");
-        using FileStream fs = fileInfo.CreateFileSafe();
         var types = typeScriptFolders.SelectMany(x => x.Files).SelectMany(x => x.Types);
+        IElement pre = document.CreateElement("pre");
+        IElement code = document.CreateElement("code");
+        code.ClassName = "language-typescript";
         foreach (TypeScriptType typeScriptType in types)
         {
-            WriteTsFile(fs, typeScriptType);
+            code = WriteTsInCodeBlock(code, typeScriptType);
             if (typeScriptType != types.Last())
             {
-                fs.WriteEmptyLine();
+                code.TextContent += Environment.NewLine;
+            }
+        }
+        pre.AppendChild(code);
+        document.Body!.AppendChild(pre);
+        return document;
+    }
+
+    private IElement WriteAllFilesIntoHtml(
+        IElement div,
+        IEnumerable<TypeScriptFolder> typeScriptFolders
+    )
+    {
+        var types = typeScriptFolders.SelectMany(x => x.Files).SelectMany(x => x.Types);
+        StringBuilder sb = new StringBuilder();
+        foreach (TypeScriptType typeScriptType in types)
+        {
+            WriteTsInHtml(sb, typeScriptType);
+            if (typeScriptType != types.Last())
+            {
+                sb.AppendLine();
             }
         }
 
-        if (_config is not { GenerateIndexFile: true, GroupByNamespace: false })
-            return;
-
-        var fileNames = new List<string> { fileInfo.Name };
-        WriteExportsForIndexFile(fileNames, outputDir);
+        div.TextContent = sb.ToString();
+        return div;
     }
 
     private void WriteTypeScriptFile(TypeScriptFile typeScriptFile, string outputDir)
@@ -194,6 +227,64 @@ public class WriterService
                         Files = x
                     }
             );
+    }
+
+    private IElement WriteTsInCodeBlock(IElement element, TypeScriptType typeScriptType)
+    {
+        var exportModel = GetExportModelType(typeScriptType.Name);
+        var sb = new StringBuilder();
+        sb.AppendLine(exportModel);
+        foreach (var typeProperty in typeScriptType.Properties)
+        {
+            var property = $"{typeProperty.Name}: {typeProperty.Type}";
+            sb.AppendLineWithTab(property, _endLinesWithSemicolon);
+        }
+
+        sb.AppendLine("}");
+
+        element.TextContent += sb.ToString();
+
+        return element;
+    }
+
+    private IElement WriteTsInMdBlock(IElement element, TypeScriptType typeScriptType)
+    {
+        var exportModel = GetExportModelType(typeScriptType.Name);
+        var sb = new StringBuilder();
+        sb.AppendLine($"```typescript");
+        sb.AppendLine(exportModel);
+        foreach (var typeProperty in typeScriptType.Properties)
+        {
+            var property = $"{typeProperty.Name}: {typeProperty.Type}";
+            sb.AppendLineWithTab(property, _endLinesWithSemicolon);
+        }
+
+        sb.AppendLine("}");
+        sb.AppendLine("```");
+
+        element.TextContent = sb.ToString();
+
+        return element;
+    }
+
+    private StringBuilder WriteTsInHtml(StringBuilder sb, TypeScriptType typeScriptType)
+    {
+        var exportModel = GetExportModelType(typeScriptType.Name);
+
+        sb.AppendLine($"<script type=\"text/typescript\">");
+        sb.AppendLine(exportModel);
+        // fs.WriteLine(exportModel, false);
+
+        foreach (var typeProperty in typeScriptType.Properties)
+        {
+            var property = $"{typeProperty.Name}: {typeProperty.Type}";
+            sb.AppendLine(property);
+            // sb.AppendLineWithTab(property, _endLinesWithSemicolon);
+            // fs.WriteLineWithTab(property, _endLinesWithSemicolon);
+        }
+        sb.AppendLine("}");
+        sb.AppendLine("</script>");
+        return sb;
     }
 
     private void WriteTsFile(FileStream fs, TypeScriptType typeScriptType)

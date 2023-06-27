@@ -1,23 +1,15 @@
 ﻿using TypeForge.Core.Configuration;
+using TypeForge.Core.Services;
 
 namespace TypeForge.AspNetCore.Services;
 
-public class TypeForgeService
+public class TypeForgeService : WriterService
 {
-    public TypeForgeService(DotTsArchitectConfig config)
-    {
-        Path = config.Path;
-        TypeNamePrefix = config.TypeNamePrefix;
-        TypeNameSuffix = config.TypeNameSuffix;
-        TypeModel = config.TypeModel;
-        PropertyNameCase = config.PropertyNameCase;
-        FileNameCase = config.FileNameCase;
-    }
+    private readonly TypeForgeConfig _config;
 
-    public string Path { get; set; }
-    public string? TypeNamePrefix { get; set; }
-    public string? TypeNameSuffix { get; set; }
-    public TypeModel TypeModel { get; set; }
-    public PropertyNameCase PropertyNameCase { get; set; }
-    public FileNameCase FileNameCase { get; set; }
+    public TypeForgeService(TypeForgeConfig config)
+        : base(config)
+    {
+        _config = config;
+    }
 }

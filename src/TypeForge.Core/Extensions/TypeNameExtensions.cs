@@ -6,7 +6,7 @@ namespace TypeForge.Core.Extensions;
 
 public static class TypeNameExtensions
 {
-    public static string GetTypeName(this string typeName, GlobalConfig config)
+    public static string GetTypeName(this string typeName, TypeForgeConfig config)
     {
         var typeNamePrefix = config.TypeNamePrefix;
         var typeNameSuffix = config.TypeNameSuffix;

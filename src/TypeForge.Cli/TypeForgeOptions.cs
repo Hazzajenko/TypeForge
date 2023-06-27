@@ -1,27 +1,56 @@
 ﻿using McMaster.Extensions.CommandLineUtils;
+using Serilog;
 using TypeForge.Cli.Mapping;
+using TypeForge.Core.Configuration;
 using TypeForge.Core.Extensions;
 using TypeForge.Core.Services;
 
 namespace TypeForge.Cli;
 
 [Command(Name = "forge", Description = "Generate TypeScript types from C# types")]
-[HelpOption("-?")]
+[HelpOption("-?|-h|--help")]
 public class TypeForgeOptions
 {
     public void OnExecute()
     {
-        var globalConfig = this.ToInputGlobalConfig();
+        if (Directory is null || Output is null)
+        {
+            Log.Logger.Information("Using config");
+            HandleUseConfig();
+            return;
+        }
+        var globalConfig = this.ToGlobalConfig();
         this.DumpObjectJson();
-        var writerService = new InputWriterService(globalConfig);
-        writerService.Generate();
+        var writerService = new WriterService(globalConfig);
+        writerService.WriteFromConfig();
+    }
+
+    private void HandleUseConfig()
+    {
+        string projectDir = GetProjectDirectory();
+        var configFileType = projectDir.GetConfigFileTypeIfExist();
+        Log.Logger.Information("Config file type: {ConfigFileType}", configFileType);
+        if (configFileType is ConfigFileType.None)
+        {
+            throw new Exception("Config file not found");
+        }
+
+        ConfigFile config = projectDir.GetConfigFile(configFileType);
+
+        if (config.NameSpaces is null)
+        {
+            throw new Exception("Config file namespaces is null");
+        }
+        var globalConfig = config.ToGlobalConfig(projectDir);
+        var writer = new WriterService(globalConfig);
+        writer.WriteFromConfig();
     }
 
     [Argument(0, Name = "directory", Description = "Directory of files to convert.")]
-    public string Directory { get; set; } = default!;
+    public string? Directory { get; set; } = default!;
 
     [Argument(1, Name = "output", Description = "Directory to output files to.")]
-    public string Output { get; set; } = default!;
+    public string? Output { get; set; } = default!;
 
     // * File
     [Option(

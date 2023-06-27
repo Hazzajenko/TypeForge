@@ -6,7 +6,7 @@ namespace TypeForge.Core.Extensions;
 
 public static class FileNameExtensions
 {
-    public static string GetFileName(this string fileName, GlobalConfig config)
+    public static string GetFileName(this string fileName, TypeForgeConfig config)
     {
         var fileNameCase = config.FileNameCase;
         var fileNamePrefix = config.TypeNamePrefix;

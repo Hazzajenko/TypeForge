@@ -8,11 +8,12 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace TypeForge.Core.Configuration;
 
-public class GlobalConfig
+public class TypeForgeConfig
 {
     public string ProjectDir { get; set; } = default!;
-    public CSharpCompilation Compilation { get; set; } = default!;
-    public ClassDeclarationSyntax[] ClassDeclarations { get; set; } = default!;
+
+    // public CSharpCompilation Compilation { get; set; } = default!;
+    // public ClassDeclarationSyntax[] ClassDeclarations { get; set; } = default!;
     public FolderNameCase FolderNameCase { get; set; } = FolderNameCase.KebabCase;
     public string? TypeNamePrefix { get; set; }
     public string? TypeNameSuffix { get; set; }

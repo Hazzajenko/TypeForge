@@ -14,11 +14,7 @@
   "EndLinesWithSemicolon": false,
   "NameSpaces": [
     {
-      "Name": "TestNamespace",
-      "Output": "/output/for/namespace1"
-    },
-    {
-      "Name": "OtherNameSpace",
+      "Name": "Contracts",
       "Output": "/output/for/namespace1"
     }
   ]

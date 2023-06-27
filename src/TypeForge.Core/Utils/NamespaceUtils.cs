@@ -90,7 +90,7 @@ public static class NamespaceUtils
 
     public static IEnumerable<NameSpaceWithNodesAndFileName> GetClassDeclarationsForNamespace(
         this ConfigNameSpaceWithPath nameSpace,
-        GlobalConfig config
+        TypeForgeConfig config
     )
     {
         var fileLocation = nameSpace.Path;
@@ -142,12 +142,42 @@ public static class NamespaceUtils
     private static string GetFileNameFromPath(this string path)
     {
         var split = path.Split("\\");
-        var fileName = split[split.Length - 1];
-        //
-        // Log.Logger.Information("Path {Path}", path);
-        // Log.Logger.Information("Split {Split}", split);
-        // Log.Logger.Information("File name {FileName}", fileName);
+        var fileName = split[^1];
         return fileName;
+    }
+
+    public static IEnumerable<TypeScriptFile> GetTypeScriptFilesForDirectory(
+        this ConfigNameSpaceWithPath[] nameSpaces,
+        TypeForgeConfig config,
+        CSharpCompilation compilation
+    )
+    {
+        return nameSpaces.SelectMany(@nameSpace =>
+        {
+            var filesInNamespace = Directory.GetFiles(
+                @nameSpace.Path,
+                "*.cs",
+                SearchOption.AllDirectories
+            );
+
+            return filesInNamespace.Select(file =>
+            {
+                SyntaxTree tree = CSharpSyntaxTree.ParseText(File.ReadAllText(file));
+                var root = (CompilationUnitSyntax)tree.GetRoot();
+                var fileName = file.GetFileNameFromPath();
+                var pathRelativeToRoot = file.GetPathFromParentNamespace(@nameSpace.Path, fileName);
+                fileName = fileName.GetFileName(config);
+                var types = root.DescendantNodes()
+                    .OfType<ClassDeclarationSyntax>()
+                    .Select(x => x.MapToTypeScriptType(config, compilation));
+                return new TypeScriptFile
+                {
+                    FileName = fileName,
+                    PathFromParentNamespace = pathRelativeToRoot,
+                    Types = types
+                };
+            });
+        });
     }
 
     public static IEnumerable<TypeScriptFile> GetTypeScriptFilesForDirectory(

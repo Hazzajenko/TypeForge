@@ -7,11 +7,21 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="AngleSharp" Version="1.0.4" />
       <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.8" />
     </ItemGroup>
 
+
     <ItemGroup>
       <ProjectReference Include="..\TypeForge.Core\TypeForge.Core.csproj" />
+    </ItemGroup>
+
+
+    <ItemGroup>
+<!--      <EmbeddedResource Include="Pages\TypeForge.cshtml" />-->
+      <EmbeddedResource Include="Ui\index.html" />
+      <EmbeddedResource Include="Ui\js\tomorrow-night-prism.js" />
+      <EmbeddedResource Include="Ui\css\tomorrow-night-prism.css" />
     </ItemGroup>
 
 </Project>

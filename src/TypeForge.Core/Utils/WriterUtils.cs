@@ -24,7 +24,7 @@ public static class WriterUtils
         fileStream.Write(txt, 0, txt.Length);
     }
 
-    private static string EndWithSemicolon(this string content, bool endWithSemicolon)
+    public static string EndWithSemicolon(this string content, bool endWithSemicolon)
     {
         return content + (endWithSemicolon ? ";" : "");
     }

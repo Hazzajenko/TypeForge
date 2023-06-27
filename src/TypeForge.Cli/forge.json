@@ -7,7 +7,7 @@
   "ExportModelType": "Type",
   "PropertyNameCase": "CamelCase",
   "FileNameCase": "KebabCase",
-  "NullableType": "Undefined",
+  "NullableType": "?",
   "GenerateIndexFile": true,
   "GroupByNameSpace": true,
   "NameSpaceInOneFile": false,

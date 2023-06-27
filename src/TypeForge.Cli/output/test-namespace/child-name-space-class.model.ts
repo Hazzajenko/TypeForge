@@ -1,4 +1,4 @@
-export type ChildNameSpaceClass = {
+export type ChildNameSpaceClassModelModel = {
 	name: string
 	nullableName?: string
 	age: number

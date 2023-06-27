@@ -102,7 +102,7 @@ public class InputWriterService
     {
         var fileName = Path.Combine(outputDir, typeScriptFile.FileName);
         var fileInfo = new FileInfo(fileName);
-        using FileStream fs = fileInfo.CreateFileSafe(_config.FolderNameCase);
+        using FileStream fs = fileInfo.CreateFileSafe();
         foreach (TypeScriptType typeScriptType in typeScriptFile.Types)
         {
             WriteTsFile(fs, typeScriptType);

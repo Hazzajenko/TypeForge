@@ -9,8 +9,35 @@ public static class InputMapping
     {
         return new InputGlobalConfig
         {
-            Directory = input.Directory,
-            Output = input.Output,
+            Directory = input.Directory!,
+            Output = input.Output!,
+            FolderNameCase = input.FolderNameCase.ToFolderNameCase(),
+            TypeNamePrefix = input.TypeNamePrefix,
+            TypeNameSuffix = input.TypeNameSuffix,
+            TypeModel = input.TypeModel.ToExportModelType(),
+            TypeNameCase = input.TypeNameCase.ToTypeNameCase(),
+            PropertyNameCase = input.PropertyNameCase.ToPropertyNameCase(),
+            FileNameCase = input.FileNameCase.ToFileNameCase(),
+            NullableType = input.NullableType.ToNullableType(),
+            GenerateIndexFile = input.GenerateIndexFile,
+            GroupByNamespace = input.GroupByNameSpace,
+            NameSpaceInOneFile = input.NameSpaceInOneFile,
+        };
+    }
+
+    public static TypeForgeConfig ToGlobalConfig(this TypeForgeOptions input)
+    {
+        return new TypeForgeConfig
+        {
+            NameSpaces = new[]
+            {
+                new ConfigNameSpaceWithPath
+                {
+                    Name = input.Directory!,
+                    Output = input.Output!,
+                    Path = input.Directory!
+                }
+            },
             FolderNameCase = input.FolderNameCase.ToFolderNameCase(),
             TypeNamePrefix = input.TypeNamePrefix,
             TypeNameSuffix = input.TypeNameSuffix,

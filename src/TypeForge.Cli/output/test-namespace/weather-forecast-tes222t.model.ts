@@ -1,4 +1,4 @@
-export type WeatherForecas222tTest = {
+export type WeatherForecas222tTestModelModel = {
 	testDate: string
 	testTemperatureC: number
 	testTemperatureF: number
