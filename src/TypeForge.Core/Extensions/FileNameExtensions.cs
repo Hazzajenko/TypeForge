@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.RegularExpressions;
 using TypeForge.Core.Configuration;
+using TypeForge.Core.Models;
 
 namespace TypeForge.Core.Extensions;
 
@@ -94,5 +95,12 @@ public static class FileNameExtensions
     private static string AddTsExtension(this string s)
     {
         return $"{s}.ts";
+    }
+
+    public static string GetFileNameFromPath(this string path)
+    {
+        var split = path.Split("\\");
+        var fileName = split[^1];
+        return fileName;
     }
 }

@@ -2,14 +2,13 @@
 using System.Text;
 using AngleSharp;
 using AngleSharp.Dom;
-using AngleSharp.Html.Dom;
 using Microsoft.CodeAnalysis.CSharp;
 using Serilog;
 using TypeForge.AspNetCore.Extensions;
 using TypeForge.Core.Configuration;
 using TypeForge.Core.Extensions;
+using TypeForge.Core.Mapping;
 using TypeForge.Core.Models;
-using TypeForge.Core.StartUp;
 using TypeForge.Core.Utils;
 
 namespace TypeForge.AspNetCore.Services;
@@ -23,9 +22,6 @@ public class TypeForgeUiService
     private readonly bool _generateIndexFile;
     private readonly bool _groupByNamespace;
     private readonly bool _nameSpaceInOneFile;
-
-    // private readonly T
-    public string Html { get; set; } = default!;
     private IDocument? _document;
 
     public TypeForgeUiService(TypeForgeConfig config)
@@ -56,20 +52,14 @@ public class TypeForgeUiService
         string html = await GetInitialIndexHtml();
         IDocument document = await context.OpenAsync(req => req.Content(html));
 
-        CSharpCompilation compilation = GetCompilation();
-        var typeScriptFolders = GetTypeScriptFolders(compilation);
+        CSharpCompilation compilation = _config.NameSpaces.GetCSharpCompilation();
+        var typeScriptFolders = _config.NameSpaces.GetTypeScriptFolders(compilation, _config);
         var outputDir = Path.Combine(_config.ProjectDir, "output");
         Log.Information("Writing to {OutputDir}", outputDir);
 
-        if (_groupByNamespace)
-        {
-            document = WriteTypeScriptFilesInGroups(document, typeScriptFolders);
-        }
-        else
-        {
-            document = WriteAllFilesIntoHtmlV2(document, typeScriptFolders);
-            // document = WriteAllFilesIntoHtml(document, typeScriptFolders);
-        }
+        document = _groupByNamespace
+            ? WriteTypeScriptFilesInGroups(document, typeScriptFolders)
+            : WriteAllFilesIntoHtmlV2(document, typeScriptFolders);
         var updatedDoc = document.DocumentElement.OuterHtml;
         _logger.Information("{Html}", updatedDoc);
         _document = document;
@@ -104,8 +94,6 @@ public class TypeForgeUiService
     )
     {
         var types = typeScriptFolders.SelectMany(x => x.Files).SelectMany(x => x.Types);
-        // IElement div = document.CreateElement("div");
-        // div.TextContent = typeScriptFile.FileName;
         IElement pre = document.CreateElement("pre");
         IElement code = document.CreateElement("code");
         code.ClassName = "language-typescript";
@@ -132,24 +120,17 @@ public class TypeForgeUiService
             TypeScriptFolder folder = typeScriptFolders.ElementAt(folderIndex);
             IElement div = document.CreateElement("div");
             div.TextContent = folder.FolderName;
-            // document.Body!.AppendChild(div);
             IElement pre = document.CreateElement("pre");
             IElement code = document.CreateElement("code");
             for (int fileIndex = 0; fileIndex < folder.Files.Count(); fileIndex++)
             {
                 TypeScriptFile file = folder.Files.ElementAt(fileIndex);
-                // IElement div2 = document.CreateElement("div");
-                // div2.TextContent = file.FileName;
-                // document.Body!.AppendChild(div2);
                 for (int typeIndex = 0; typeIndex < file.Types.Count(); typeIndex++)
                 {
                     TypeScriptType type = file.Types.ElementAt(typeIndex);
-                    // IElement pre = document.CreateElement("pre");
-                    // IElement code = document.CreateElement("code");
                     code.ClassName = "language-typescript";
                     code = WriteTsInCodeBlock(code, type);
                     pre.AppendChild(code);
-                    // document.Body!.AppendChild(pre);
                 }
             }
             pre.AppendChild(div);
@@ -183,101 +164,10 @@ public class TypeForgeUiService
         return document;
     }
 
-    private IDocument ToggleScript(IDocument document, string scriptId)
-    {
-        IElement? script = document.GetElementById(scriptId);
-        if (script is null)
-        {
-            throw new NullReferenceException($"Script with id {scriptId} not found");
-        }
-
-        script.TextContent = script.TextContent.Contains("none")
-            ? script.TextContent.Replace("none", "block")
-            : script.TextContent.Replace("block", "none");
-        return document;
-    }
-
-    private void WriteExportsForIndexFile(
-        IEnumerable<TypeScriptFolder> typeScriptFolders,
-        string outputDir
-    )
-    {
-        string indexFile = Path.Combine(outputDir, "index.ts");
-        var indexTemplateFile = new FileInfo(indexFile);
-        using FileStream indexFs = indexTemplateFile.CreateFileSafe();
-        var linesToWrite = typeScriptFolders
-            .SelectMany(folder => folder.Files)
-            .Select(GetExportStatement);
-
-        foreach (var line in linesToWrite)
-        {
-            indexFs.WriteLine(line, _endLinesWithSemicolon);
-        }
-    }
-
-    private void WriteExportsForIndexFile(
-        IEnumerable<TypeScriptFile> typeScriptFiles,
-        string outputDir
-    )
-    {
-        string indexFile = Path.Combine(outputDir, "index.ts");
-        Log.Logger.Information("Creating index file {IndexFile}", indexFile);
-        var indexTemplateFile = new FileInfo(indexFile);
-        using FileStream indexFs = indexTemplateFile.CreateFileSafe();
-
-        foreach (TypeScriptFile typeScriptFile in typeScriptFiles)
-        {
-            string fileName = typeScriptFile.FileName.TakeOutTsExtension();
-            string exportModel = $"export * from './{fileName}'";
-            indexFs.WriteLine(exportModel, _endLinesWithSemicolon);
-        }
-    }
-
-    private void WriteExportsForIndexFile(IEnumerable<string> fileNames, string outputDir)
-    {
-        string indexFile = Path.Combine(outputDir, "index.ts");
-        Log.Logger.Information("Creating index file {IndexFile}", indexFile);
-        var indexTemplateFile = new FileInfo(indexFile);
-        using FileStream indexFs = indexTemplateFile.CreateFileSafe();
-
-        foreach (string fileName in fileNames)
-        {
-            var exportFileName = fileName.TakeOutTsExtension();
-            string exportModel = $"export * from './{exportFileName}'";
-            indexFs.WriteLine(exportModel, _endLinesWithSemicolon);
-        }
-    }
-
-    private static string GetExportStatement(TypeScriptFile file)
-    {
-        string fileName = file.FileName.TakeOutTsExtension();
-        return $"export * from './{fileName}'";
-    }
-
-    private CSharpCompilation GetCompilation()
-    {
-        var syntaxTrees = _config.NameSpaces.GetSyntaxTrees();
-        return syntaxTrees.CreateCompilation();
-    }
-
-    private IEnumerable<TypeScriptFolder> GetTypeScriptFolders(CSharpCompilation compilation)
-    {
-        return _config.NameSpaces
-            .GetTypeScriptFilesForDirectory(_config, compilation)
-            .GroupBy(x => x.PathFromParentNamespace)
-            .Select(
-                x =>
-                    new TypeScriptFolder
-                    {
-                        FolderName = x.Key.ToCaseOfOption(_config.FolderNameCase),
-                        Files = x
-                    }
-            );
-    }
-
     private IElement WriteTsInCodeBlock(IElement element, TypeScriptType typeScriptType)
     {
-        var exportModel = GetExportModelType(typeScriptType.Name);
+        var exportModel = typeScriptType.GetExportModelType(_config);
+        // var exportModel = GetExportModelType(typeScriptType.Name);
         var sb = new StringBuilder();
         sb.AppendLine(exportModel);
         foreach (var typeProperty in typeScriptType.Properties)
@@ -295,7 +185,8 @@ public class TypeForgeUiService
 
     private IElement WriteTsInMdBlock(IElement element, TypeScriptType typeScriptType)
     {
-        var exportModel = GetExportModelType(typeScriptType.Name);
+        var exportModel = typeScriptType.GetExportModelType(_config);
+        // var exportModel = GetExportModelType(typeScriptType.Name);
         var sb = new StringBuilder();
         sb.AppendLine($"```typescript");
         sb.AppendLine(exportModel);
@@ -315,7 +206,8 @@ public class TypeForgeUiService
 
     private StringBuilder WriteTsInHtml(StringBuilder sb, TypeScriptType typeScriptType)
     {
-        var exportModel = GetExportModelType(typeScriptType.Name);
+        var exportModel = typeScriptType.GetExportModelType(_config);
+        // var exportModel = GetExportModelType(typeScriptType.Name);
 
         sb.AppendLine($"<script type=\"text/typescript\">");
         sb.AppendLine(exportModel);
@@ -335,7 +227,8 @@ public class TypeForgeUiService
 
     private void WriteTsFile(FileStream fs, TypeScriptType typeScriptType)
     {
-        var exportModel = GetExportModelType(typeScriptType.Name);
+        var exportModel = typeScriptType.GetExportModelType(_config);
+        // var exportModel = GetExportModelType(typeScriptType.Name);
         fs.WriteLine(exportModel, false);
 
         foreach (var typeProperty in typeScriptType.Properties)
@@ -346,19 +239,19 @@ public class TypeForgeUiService
 
         fs.WriteLine("}", false);
     }
-
-    private string GetExportModelType(string typeName)
-    {
-        TypeModel typeModel = _config.TypeModel;
-        typeName = typeName.GetTypeName(_config);
-        string exportTypeString = $"export type {typeName} = {{";
-        string exportInterfaceString = $"export interface {typeName} {{";
-
-        return typeModel switch
-        {
-            TypeModel.Type => exportTypeString,
-            TypeModel.Interface => exportInterfaceString,
-            _ => throw new ArgumentOutOfRangeException(nameof(typeModel), typeModel, null)
-        };
-    }
+    //
+    // private string GetExportModelType(string typeName)
+    // {
+    //     TypeModel typeModel = _config.TypeModel;
+    //     typeName = typeName.GetTypeName(_config);
+    //     string exportTypeString = $"export type {typeName} = {{";
+    //     string exportInterfaceString = $"export interface {typeName} {{";
+    //
+    //     return typeModel switch
+    //     {
+    //         TypeModel.Type => exportTypeString,
+    //         TypeModel.Interface => exportInterfaceString,
+    //         _ => throw new ArgumentOutOfRangeException(nameof(typeModel), typeModel, null)
+    //     };
+    // }
 }

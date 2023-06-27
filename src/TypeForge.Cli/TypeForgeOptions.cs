@@ -3,6 +3,7 @@ using Serilog;
 using TypeForge.Cli.Mapping;
 using TypeForge.Core.Configuration;
 using TypeForge.Core.Extensions;
+using TypeForge.Core.Mapping;
 using TypeForge.Core.Services;
 
 namespace TypeForge.Cli;
@@ -19,7 +20,7 @@ public class TypeForgeOptions
             HandleUseConfig();
             return;
         }
-        var globalConfig = this.ToGlobalConfig();
+        var globalConfig = this.ToTypeForgeConfig();
         this.DumpObjectJson();
         var writerService = new WriterService(globalConfig);
         writerService.WriteFromConfig();
@@ -41,7 +42,7 @@ public class TypeForgeOptions
         {
             throw new Exception("Config file namespaces is null");
         }
-        var globalConfig = config.ToGlobalConfig(projectDir);
+        var globalConfig = config.ToTypeForgeConfig(projectDir);
         var writer = new WriterService(globalConfig);
         writer.WriteFromConfig();
     }

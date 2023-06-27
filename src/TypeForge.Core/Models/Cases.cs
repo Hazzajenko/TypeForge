@@ -1,47 +1,4 @@
-﻿using Ardalis.SmartEnum;
-
-namespace TypeForge.Core.Configuration;
-
-public class DotTsArchitectConfig
-{
-    public DotTsArchitectConfig(
-        string path,
-        TypeModel typeModel = TypeModel.Type,
-        PropertyNameCase propertyNameCase = PropertyNameCase.CamelCase,
-        FileNameCase fileNameCase = FileNameCase.KebabCase,
-        bool generateIndexFile = true,
-        bool groupByNamespace = false,
-        bool filePerNamespace = false
-    )
-    {
-        Path = path;
-        TypeModel = typeModel;
-        PropertyNameCase = propertyNameCase;
-        FileNameCase = fileNameCase;
-        GenerateIndexFile = generateIndexFile;
-        GroupByNamespace = groupByNamespace;
-        FilePerNamespace = filePerNamespace;
-    }
-
-    public DotTsArchitectConfig()
-    {
-        Path = "src";
-        TypeModel = TypeModel.Type;
-        PropertyNameCase = PropertyNameCase.CamelCase;
-        FileNameCase = FileNameCase.KebabCase;
-    }
-
-    public string Path { get; set; }
-    public string? TypeNamePrefix { get; set; }
-    public string? TypeNameSuffix { get; set; }
-    public TypeModel TypeModel { get; set; }
-    public PropertyNameCase PropertyNameCase { get; set; }
-    public FileNameCase FileNameCase { get; set; }
-    public NullableType NullableType { get; set; }
-    public bool GenerateIndexFile { get; set; }
-    public bool GroupByNamespace { get; set; }
-    public bool FilePerNamespace { get; set; }
-}
+﻿namespace TypeForge.Core.Models;
 
 public enum FolderNameCase
 {
@@ -193,14 +150,3 @@ public static class NullableTypeExtensions
         };
     }
 }
-
-
-/*public sealed class ExportModelType : SmartEnum<ExportModelType>
-{
-    public static readonly ExportModelType Type = new(1, "Type");
-    public static readonly ExportModelType Interface = new(2, "Interface");
-
-    private ExportModelType(int id, string name) : base(name, id)
-    {
-    }
-}*/

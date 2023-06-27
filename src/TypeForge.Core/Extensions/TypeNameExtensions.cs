@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.RegularExpressions;
 using TypeForge.Core.Configuration;
+using TypeForge.Core.Models;
 
 namespace TypeForge.Core.Extensions;
 
@@ -25,15 +26,6 @@ public static class TypeNameExtensions
             .AddPrefixAndSuffix(typeNamePrefix, typeNameSuffix)
             .ToCaseOfOption(typeNameCase);
     }
-
-    // public static string GetTypeName(
-    //     this string typeName,
-    //     string? typeNamePrefix = null,
-    //     string? typeNameSuffix = null
-    // )
-    // {
-    //     return typeName.AddPrefixAndSuffix(typeNamePrefix, typeNameSuffix);
-    // }
 
     private static string AddPrefixAndSuffix(
         this string typeName,
@@ -71,6 +63,30 @@ public static class TypeNameExtensions
             PropertyNameCase.CamelCase => s.ToCamelCase(),
             PropertyNameCase.PascalCase => s.ToPascalCase(),
             _ => throw new ArgumentOutOfRangeException(nameof(option), option, null)
+        };
+    }
+
+    public static string GetExportStatement(this TypeScriptFile file)
+    {
+        string fileName = file.FileName.TakeOutTsExtension();
+        return $"export * from './{fileName}'";
+    }
+
+    public static string GetExportModelType(
+        this TypeScriptType typeScriptType,
+        TypeForgeConfig config
+    )
+    {
+        TypeModel typeModel = config.TypeModel;
+        var typeName = typeScriptType.Name.GetTypeName(config);
+        string exportTypeString = $"export type {typeName} = {{";
+        string exportInterfaceString = $"export interface {typeName} {{";
+
+        return typeModel switch
+        {
+            TypeModel.Type => exportTypeString,
+            TypeModel.Interface => exportInterfaceString,
+            _ => throw new ArgumentOutOfRangeException(nameof(typeModel), typeModel, null)
         };
     }
 }

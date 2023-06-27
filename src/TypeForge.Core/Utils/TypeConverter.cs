@@ -1,14 +1,9 @@
 ﻿using TypeForge.Core.Configuration;
 using TypeForge.Core.Models;
 
-namespace TypeForge.Core;
+namespace TypeForge.Core.Utils;
 
-public abstract class TypeConverter
-{
-    public abstract string Convert(Type type);
-}
-
-public static class TypeConverter3
+public static class TypeConverter
 {
     private static readonly Dictionary<Type, string> TypeMap =
         new()

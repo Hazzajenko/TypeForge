@@ -1,19 +1,10 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-using TypeForge.Core.Utils;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
+﻿using TypeForge.Core.Models;
 
 namespace TypeForge.Core.Configuration;
 
 public class TypeForgeConfig
 {
     public string ProjectDir { get; set; } = default!;
-
-    // public CSharpCompilation Compilation { get; set; } = default!;
-    // public ClassDeclarationSyntax[] ClassDeclarations { get; set; } = default!;
     public FolderNameCase FolderNameCase { get; set; } = FolderNameCase.KebabCase;
     public string? TypeNamePrefix { get; set; }
     public string? TypeNameSuffix { get; set; }
@@ -33,7 +24,7 @@ public class TypeForgeConfig
 
     public bool NameSpaceInOneFile { get; set; } = false;
     public bool EndLinesWithSemicolon { get; set; } = false;
-    public ConfigNameSpaceWithPath[] NameSpaces { get; set; } = default!;
+    public IEnumerable<ConfigNameSpaceWithPath> NameSpaces { get; set; } = default!;
 }
 
 public class ConfigFile

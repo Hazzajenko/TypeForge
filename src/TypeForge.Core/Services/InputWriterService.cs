@@ -26,7 +26,7 @@ public class InputWriterService
 
     public void Generate()
     {
-        CSharpCompilation compilation = GetCompilation();
+        CSharpCompilation compilation = _config.Directory.GetCSharpCompilation();
         var typeScriptFolders = GetTypeScriptFolders(compilation);
         var outputDir = _config.Output;
         Log.Information("Writing to {OutputDir}", outputDir);
@@ -168,12 +168,6 @@ public class InputWriterService
     {
         string fileName = file.FileName.TakeOutTsExtension();
         return $"export * from './{fileName}'";
-    }
-
-    private CSharpCompilation GetCompilation()
-    {
-        var syntaxTrees = _config.Directory.GetSyntaxTrees();
-        return syntaxTrees.CreateCompilation();
     }
 
     private IEnumerable<TypeScriptFolder> GetTypeScriptFolders(CSharpCompilation compilation)

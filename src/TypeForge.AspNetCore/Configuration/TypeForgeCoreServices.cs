@@ -17,8 +17,8 @@ namespace TypeForge.AspNetCore.Configuration;
 public static class TypeForgeCoreServices
 {
     public static IServiceCollection AddTypeForge(
-        this IServiceCollection services,
-        Action<DotTsArchitectConfig> configure
+        this IServiceCollection services
+    // Action<DotTsArchitectConfig> configure
     )
     {
         string projectDir = DirectoryExtensions.GetProjectDirectory();
@@ -34,7 +34,7 @@ public static class TypeForgeCoreServices
         {
             throw new Exception("Config file namespaces is null");
         }
-        var globalConfig = config.ToGlobalConfig(projectDir);
+        var globalConfig = config.ToTypeForgeConfig(projectDir);
         var writer = new WriterService(globalConfig);
         writer.WriteFromConfig();
 
@@ -53,7 +53,7 @@ public static class TypeForgeCoreServices
         {
             throw new Exception("Config file namespaces is null");
         }
-        var globalConfig = config.ToGlobalConfig(projectDir);
+        var globalConfig = config.ToTypeForgeConfig(projectDir);
         var typeForgeService = new TypeForgeService(globalConfig);
         services.AddSingleton(_ => typeForgeService);
 

@@ -1,35 +1,45 @@
 ﻿using TypeForge.Core.Configuration;
+using TypeForge.Core.Extensions;
+using TypeForge.Core.Models;
 
 namespace TypeForge.Core.Mapping;
 
 public static class ConfigMapping
 {
-    public static TypeForgeConfig Map(this TypeForgeConfig configFile, TypeForgeConfig configToMap)
+    public static TypeForgeConfig ToTypeForgeConfig(this ConfigFile configFile, string projectDir)
     {
-        return configToMap;
-    }
-
-    public static TypeForgeConfig Map(this ConfigFile configFile)
-    {
+        var configNamespaces = configFile.NameSpaces.Select(
+            x => x.ToConfigNameSpaceWithPath(projectDir)
+        );
         return new TypeForgeConfig
         {
-            FolderNameCase = Enum.Parse<FolderNameCase>(configFile.FolderNameCase),
+            ProjectDir = projectDir,
+            FolderNameCase = configFile.FolderNameCase.ToFolderNameCase(),
             TypeNamePrefix = configFile.TypeNamePrefix,
             TypeNameSuffix = configFile.TypeNameSuffix,
-            FileNamePrefix = configFile.FileNamePrefix,
-            FileNameSuffix = configFile.FileNameSuffix,
-            FileNameCase = Enum.Parse<FileNameCase>(configFile.FileNameCase),
-            TypeModel = Enum.Parse<TypeModel>(configFile.TypeModel),
-            TypeNameCase = Enum.Parse<TypeNameCase>(configFile.TypeNameCase),
-            PropertyNameCase = Enum.Parse<PropertyNameCase>(configFile.PropertyNameCase),
-            NullableType = Enum.Parse<NullableType>(configFile.NullableType),
+            TypeModel = configFile.TypeModel.ToExportModelType(),
+            TypeNameCase = configFile.TypeNameCase.ToTypeNameCase(),
+            PropertyNameCase = configFile.PropertyNameCase.ToPropertyNameCase(),
+            FileNameCase = configFile.FileNameCase.ToFileNameCase(),
+            NullableType = configFile.NullableType.ToNullableType(),
             GenerateIndexFile = configFile.GenerateIndexFile,
             GroupByNamespace = configFile.GroupByNameSpace,
             NameSpaceInOneFile = configFile.NameSpaceInOneFile,
-            EndLinesWithSemicolon = configFile.EndLinesWithSemicolon,
-            NameSpaces = configFile.NameSpaces
-                .Select(x => new ConfigNameSpaceWithPath { Name = x.Name, Output = x.Output })
-                .ToArray()
+            NameSpaces = configNamespaces
+        };
+    }
+
+    private static ConfigNameSpaceWithPath ToConfigNameSpaceWithPath(
+        this ConfigNameSpace configNameSpace,
+        string projectDir
+    )
+    {
+        var path = $"{projectDir}{configNameSpace.Name}";
+        return new ConfigNameSpaceWithPath
+        {
+            Name = configNameSpace.Name,
+            Path = path,
+            Output = configNameSpace.Output
         };
     }
 }

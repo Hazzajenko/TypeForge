@@ -15,7 +15,6 @@ public static class TypeForgeApplicationBuilder
     {
         app.UseEndpoints(builder =>
         {
-            // builder.MapRazorPages();
             builder.MapGet(
                 "/typeforge",
                 async (HttpContext context, TypeForgeUiService typeForgeUiService) =>

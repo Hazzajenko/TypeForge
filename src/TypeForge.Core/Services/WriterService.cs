@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using TypeForge.Core.Configuration;
 using TypeForge.Core.Models;
+using SyntaxExtensions = TypeForge.Core.Extensions.SyntaxExtensions;
 
 namespace TypeForge.Core.Services;
 
@@ -32,14 +33,14 @@ public class WriterService
 
     public void WriteFromConfig()
     {
-        CSharpCompilation compilation = GetCompilation();
-        var typeScriptFolders = GetTypeScriptFolders(compilation);
+        CSharpCompilation compilation = _config.NameSpaces.GetCSharpCompilation();
+        var typeScriptFolders = _config.NameSpaces.GetTypeScriptFolders(compilation, _config);
         var outputDir = Path.Combine(_config.ProjectDir, "output");
         Log.Information("Writing to {OutputDir}", outputDir);
 
         if (_nameSpaceInOneFile)
         {
-            WriteAllFilesIntoOneFile();
+            WriteAllFilesIntoOneFile(typeScriptFolders, compilation);
             return;
         }
 
@@ -78,15 +79,15 @@ public class WriterService
         WriteExportsForIndexFile(typeScriptFolder.Files, path);
     }
 
-    private void WriteAllFilesIntoOneFile()
+    private void WriteAllFilesIntoOneFile(
+        IEnumerable<TypeScriptFolder> typeScriptFolders,
+        CSharpCompilation compilation
+    )
     {
-        CSharpCompilation compilation = GetCompilation();
-        var typeScriptFolders = GetTypeScriptFolders(compilation);
-        // var typeScriptFolders = GetNamespaceDataGrouped();
         var outputDir = Path.Combine(_config.ProjectDir, "output\\");
         var fileInfo = new FileInfo($"{outputDir}all.ts");
         using FileStream fs = fileInfo.CreateFileSafe();
-        var types = typeScriptFolders.SelectMany(x => x.Files).SelectMany(x => x.Types);
+        var types = typeScriptFolders.GetTypesFromFolders();
         foreach (TypeScriptType typeScriptType in types)
         {
             WriteTsFile(fs, typeScriptType);
@@ -128,7 +129,7 @@ public class WriterService
         using FileStream indexFs = indexTemplateFile.CreateFileSafe();
         var linesToWrite = typeScriptFolders
             .SelectMany(folder => folder.Files)
-            .Select(GetExportStatement);
+            .Select(x => x.GetExportStatement());
 
         foreach (var line in linesToWrite)
         {
@@ -169,36 +170,9 @@ public class WriterService
         }
     }
 
-    private static string GetExportStatement(TypeScriptFile file)
-    {
-        string fileName = file.FileName.TakeOutTsExtension();
-        return $"export * from './{fileName}'";
-    }
-
-    private CSharpCompilation GetCompilation()
-    {
-        var syntaxTrees = _config.NameSpaces.GetSyntaxTrees();
-        return syntaxTrees.CreateCompilation();
-    }
-
-    private IEnumerable<TypeScriptFolder> GetTypeScriptFolders(CSharpCompilation compilation)
-    {
-        return _config.NameSpaces
-            .GetTypeScriptFilesForDirectory(_config, compilation)
-            .GroupBy(x => x.PathFromParentNamespace)
-            .Select(
-                x =>
-                    new TypeScriptFolder
-                    {
-                        FolderName = x.Key.ToCaseOfOption(_config.FolderNameCase),
-                        Files = x
-                    }
-            );
-    }
-
     private void WriteTsFile(FileStream fs, TypeScriptType typeScriptType)
     {
-        var exportModel = GetExportModelType(typeScriptType.Name);
+        var exportModel = typeScriptType.GetExportModelType(_config);
         fs.WriteLine(exportModel, false);
 
         foreach (var typeProperty in typeScriptType.Properties)
@@ -208,20 +182,5 @@ public class WriterService
         }
 
         fs.WriteLine("}", false);
-    }
-
-    private string GetExportModelType(string typeName)
-    {
-        TypeModel typeModel = _config.TypeModel;
-        typeName = typeName.GetTypeName(_config);
-        string exportTypeString = $"export type {typeName} = {{";
-        string exportInterfaceString = $"export interface {typeName} {{";
-
-        return typeModel switch
-        {
-            TypeModel.Type => exportTypeString,
-            TypeModel.Interface => exportInterfaceString,
-            _ => throw new ArgumentOutOfRangeException(nameof(typeModel), typeModel, null)
-        };
     }
 }

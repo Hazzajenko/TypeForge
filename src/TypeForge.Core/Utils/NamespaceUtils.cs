@@ -53,6 +53,11 @@ public static class NamespaceUtils
         return syntaxTrees.ToArray();
     }
 
+    // public static CSharpCompilation GetCSharpCompilation(this ConfigNameSpaceWithPath[] nameSpaces)
+    // {
+    //     return nameSpaces.GetSyntaxTrees().CreateCompilation();
+    // }
+
     public static SyntaxTree[] GetSyntaxTrees(this ConfigNameSpace[] nameSpaces)
     {
         var paths = nameSpaces.Select(x => x.Name);
@@ -197,7 +202,8 @@ public static class NamespaceUtils
             fileName = fileName.GetFileName(config);
             var types = root.DescendantNodes()
                 .OfType<ClassDeclarationSyntax>()
-                .Select(x => x.MapToTypeScriptType(config, compilation));
+                .Select(x => x.MapToTypeScriptType(new TypeForgeConfig(), compilation));
+            // .Select(x => x.MapToTypeScriptType(config compilation));
             return new TypeScriptFile
             {
                 FileName = fileName,
@@ -314,7 +320,7 @@ public static class NamespaceUtils
 
         var root = (CompilationUnitSyntax)tree.GetRoot();
 
-        root.Log();
+        // root.Log();
         // logger.Information("{Root}", root.ToFullString());
 
         var @class = root.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();

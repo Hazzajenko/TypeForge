@@ -1,4 +1,6 @@
-﻿namespace TypeForge.Core.Configuration;
+﻿using TypeForge.Core.Models;
+
+namespace TypeForge.Core.Configuration;
 
 public class InputGlobalConfig
 {
