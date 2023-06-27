@@ -1,9 +1,11 @@
 ﻿using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.FileProviders;
 using TypeForge.AspNetCore.Middlewares;
+using TypeForge.AspNetCore.Services;
 
 namespace TypeForge.AspNetCore.Configuration;
 
@@ -11,40 +13,19 @@ public static class TypeForgeApplicationBuilder
 {
     public static IApplicationBuilder UseTypeForge(this IApplicationBuilder app)
     {
-        app.UseStaticFiles();
-        /*app.UseFileServer(
-            new FileServerOptions
-            {
-                RequestPath = new PathString("/typeforge"),
-                FileProvider = new EmbeddedFileProvider(
-                    typeof(TypeForgeApplicationBuilder).GetTypeInfo().Assembly,
-                    "TypeForge.AspNetCore.Ui"
-                )
-            }
-        );*/
-
-        app.UseTypeForgeMiddleware();
-        //
-        // app.UseEndpoints(builder =>
-        // {
-        //     // builder.MapRazorPages();
-        //     builder.MapGet(
-        //         "/typeforge", context =>
-        //         {
-        //             context.Response.Redirect("/Ui/index.html");
-        //             return Task.CompletedTask;
-        //         }
-        //     );
-        // });
-
-        // app.MapRazorPages();
+        app.UseEndpoints(builder =>
+        {
+            // builder.MapRazorPages();
+            builder.MapGet(
+                "/typeforge",
+                async (HttpContext context, TypeForgeUiService typeForgeUiService) =>
+                {
+                    var result = typeForgeUiService.FetchHtmlFromDocument();
+                    await context.Response.WriteAsync(result);
+                }
+            );
+        });
 
         return app;
     }
-
-    // public static IApplicationBuilder MapTypeForgeRazorPage(this IEndpointRouteBuilder endpoints)
-    // {
-    //     endpoints.MapRazorPages();
-    //
-    // }
 }

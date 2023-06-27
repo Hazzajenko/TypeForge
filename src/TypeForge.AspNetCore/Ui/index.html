@@ -5,16 +5,193 @@
 <head>
     <meta charset="utf-8" />
     <title>Hello World!</title>
-    <!--  <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.css" rel="stylesheet" />-->
-    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+<!--      <link 
+        id="prism-theme-css"
+              href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.css" rel="stylesheet" />-->
+    <link
+            id="prism-theme-css"
+            href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<!--    <link -->
+<!--        id="line-numbers-css"-->
+<!--            rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.css">-->
 </head>
-<body class="line-numbers">
-<script type="module" src="https://md-block.verou.me/md-block.js"></script>
+<body class="line-numbers" style="background-color: #2d2d2d">
+<button
+        id="toggle-theme"
+        style="--clr:#39FF14"><span>Toggle Theme</span><i></i></button>
+
+<button
+        id="toggle-file-names"
+        style="--clr:#39FF14"><span>Toggle File Names</span><i></i></button>
+
+<script>
+    const darkBg= "#2d2d2d"
+    const lightBg = "#f5f2f0"
+    
+    document.getElementById("toggle-theme").addEventListener("click", function () {
+        const link = document.getElementById("prism-theme-css");
+        if (link.href.endsWith("prism-tomorrow.min.css")) {
+            link.href = "https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.css";
+            document.body.style.backgroundColor = lightBg;
+            const toggleButton = document.getElementById("toggle-theme");
+            toggleButton.style.setProperty("--clr", "#0FF0FC");
+        } else {
+            link.href = "https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css";
+            document.body.style.backgroundColor = darkBg;
+            const toggleButton = document.getElementById("toggle-theme");
+            toggleButton.style.setProperty("--clr", "#39FF14");
+            
+        }
+    });
+    
+    let fileNamesVisible = true;
+    
+    document.getElementById("toggle-file-names").addEventListener("click", function () {
+        const display = fileNamesVisible ? 'none' : 'block';
+        const divs = document.getElementsByClassName('file-name');
+        console.log('divs', divs)
+        for(let i = 0; i < divs.length; i++) {
+            divs[i].style.display = display;
+        }
+        fileNamesVisible = !fileNamesVisible;
+    });
+    
+    document.getElementById("toggle-line-numbers").addEventListener("click", function () {
+        const style = document.getElementById("line-numbers-css");
+        
+        if (style) {
+            style.remove();
+            return
+        }
+        const newStyle = document.createElement("link");
+        newStyle.id = "line-numbers-css";
+        newStyle.rel = "stylesheet";
+        newStyle.href = "https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.css";
+    });
+</script>
+<div id="app"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/7.4.4/polyfill.min.js"></script>
+
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<!--<script -->
+<!--        id="line-numbers-js"-->
+<!--        src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>-->
 
 </body>
 </html>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        padding: 1rem;
+    }
+
+    button {
+        position: relative;
+        background: #444;
+        color: #fff;
+        text-decoration: none;
+        text-transform: uppercase;
+        border: none;
+        letter-spacing: 0.1rem;
+        font-size: 1rem;
+        padding: 0.5rem 1.5rem;
+        transition: 0.2s;
+        margin-top: 1rem;
+    }
+
+    button:hover {
+        letter-spacing: 0.2rem;
+        padding: 1.1rem 3.1rem;
+        background: var(--clr);
+        color: var(--clr);
+        /* box-shadow: 0 0 35px var(--clr); */
+        animation: box 3s infinite;
+    }
+
+    button::before {
+        content: "";
+        position: absolute;
+        inset: 2px;
+        background: #272822;
+    }
+
+    button span {
+        position: relative;
+        z-index: 1;
+    }
+    button i {
+        position: absolute;
+        inset: 0;
+        display: block;
+    }
+
+    button i::before {
+        content: "";
+        position: absolute;
+        width: 10px;
+        height: 2px;
+        left: 80%;
+        top: -2px;
+        border: 2px solid var(--clr);
+        background: #272822;
+        transition: 0.2s;
+    }
+
+    button:hover i::before {
+        width: 15px;
+        left: 20%;
+        animation: move 3s infinite;
+    }
+
+    button i::after {
+        content: "";
+        position: absolute;
+        width: 10px;
+        height: 2px;
+        left: 20%;
+        bottom: -2px;
+        border: 2px solid var(--clr);
+        background: #272822;
+        transition: 0.2s;
+    }
+
+    button:hover i::after {
+        width: 15px;
+        left: 80%;
+        animation: move 3s infinite;
+    }
+
+    @keyframes move {
+        0% {
+            transform: translateX(0);
+        }
+        50% {
+            transform: translateX(5px);
+        }
+        100% {
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes box {
+        0% {
+            box-shadow: #27272c;
+        }
+        50% {
+            box-shadow: 0 0 25px var(--clr);
+        }
+        100% {
+            box-shadow: #27272c;
+        }
+    }
+
+</style>

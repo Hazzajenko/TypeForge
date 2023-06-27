@@ -1,4 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Reflection;
+using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using TypeForge.AspNetCore.Services;
@@ -16,19 +21,8 @@ public static class TypeForgeCoreServices
         Action<DotTsArchitectConfig> configure
     )
     {
-        // string projectDir =
         string projectDir = DirectoryExtensions.GetProjectDirectory();
-        /*services.AddSingleton(_ =>
-        {
-            var config = new DotTsArchitectConfig();
-            configure?.Invoke(config);
-            return new TypeForgeService();
-        });*/
-
-        // var logger = Log.Logger.ForContext<DotTsArchitectCoreServices>();
-
         var configFileType = projectDir.GetConfigFileTypeIfExist();
-        // logger.Information("Config file type: {ConfigFileType}", configFileType);
         if (configFileType is ConfigFileType.None)
         {
             throw new Exception("Config file not found");
@@ -64,58 +58,9 @@ public static class TypeForgeCoreServices
         services.AddSingleton(_ => typeForgeService);
 
         typeForgeService.WriteFromConfig();
-
-        // globalConfig.Map();
-
-        // services.ConfigureOptions<TypeForgeConfig>();
-
-        // services.Configure<TypeForgeConfig>(options => options.Map(globalConfig));
-
-        // services.Configure<TypeForgeConfig>(options =>
-        // {
-        //     options = globalConfig;
-        // });
-
-        // var uiLogger = Log.Logger.ForContext<TypeForgeUiService>();
         var typeForgeUiService = new TypeForgeUiService(globalConfig);
-        // services.AddSingleton(_ => typeForgeUiService);
-        // typeForgeUiService.ReadHtml();
-        // services.AddRazorPages();
-
-        // services.AddSingleton<TypeForgeConfig>();
         services.AddSingleton(typeForgeUiService);
-        // services.AddSingleton(_ => new TypeForgeUiService(globalConfig));
-        // var serviceProvider = services.BuildServiceProvider();
-        // var typeForgeUiService = serviceProvider.GetService<TypeForgeUiService>();
-        // ArgumentNullException.ThrowIfNull(typeForgeUiService);
         typeForgeUiService.WriteFromConfig();
-        // typeForgeUiService.ReadHtml();
-
-        // services.
-
-
-
         return services;
     }
-
-    /*private void HandleUseConfig()
-    {
-        string projectDir = GetProjectDirectory();
-        var configFileType = projectDir.GetConfigFileTypeIfExist();
-        Log.Logger.Information("Config file type: {ConfigFileType}", configFileType);
-        if (configFileType is ConfigFileType.None)
-        {
-            throw new Exception("Config file not found");
-        }
-
-        ConfigFile config = projectDir.GetConfigFile(configFileType);
-
-        if (config.NameSpaces is null)
-        {
-            throw new Exception("Config file namespaces is null");
-        }
-        var globalConfig = config.ToGlobalConfig(projectDir);
-        var writer = new WriterService(globalConfig);
-        writer.WriteFromConfig();
-    }*/
 }

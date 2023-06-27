@@ -2,6 +2,7 @@
 using System.Text;
 using AngleSharp;
 using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using Microsoft.CodeAnalysis.CSharp;
 using Serilog;
 using TypeForge.AspNetCore.Extensions;
@@ -52,7 +53,7 @@ public class TypeForgeUiService
         IConfiguration config = AngleSharp.Configuration.Default;
         IBrowsingContext context = BrowsingContext.New(config);
 
-        string html = await GetIndexHtml();
+        string html = await GetInitialIndexHtml();
         IDocument document = await context.OpenAsync(req => req.Content(html));
 
         CSharpCompilation compilation = GetCompilation();
@@ -60,13 +61,21 @@ public class TypeForgeUiService
         var outputDir = Path.Combine(_config.ProjectDir, "output");
         Log.Information("Writing to {OutputDir}", outputDir);
 
-        document = WriteAllFilesIntoHtml(document, typeScriptFolders);
+        if (_groupByNamespace)
+        {
+            document = WriteTypeScriptFilesInGroups(document, typeScriptFolders);
+        }
+        else
+        {
+            document = WriteAllFilesIntoHtmlV2(document, typeScriptFolders);
+            // document = WriteAllFilesIntoHtml(document, typeScriptFolders);
+        }
         var updatedDoc = document.DocumentElement.OuterHtml;
         _logger.Information("{Html}", updatedDoc);
         _document = document;
     }
 
-    private async Task<string> GetIndexHtml()
+    private async Task<string> GetInitialIndexHtml()
     {
         var assembly = Assembly.GetExecutingAssembly();
         ArgumentNullException.ThrowIfNull(assembly);
@@ -76,22 +85,17 @@ public class TypeForgeUiService
         return await reader.ReadToEndAsync();
     }
 
-    private void WriteTypeScriptFolder(TypeScriptFolder typeScriptFolder, string outputDir)
+    public IDocument WriteTypeScriptFilesInGroups(
+        IDocument document,
+        IEnumerable<TypeScriptFolder> typeScriptFolders
+    )
     {
-        var path = Path.Combine(outputDir, typeScriptFolder.FolderName);
-        if (_groupByNamespace is false)
-        {
-            path = outputDir;
-        }
-        foreach (TypeScriptFile typeScriptFile in typeScriptFolder.Files)
-        {
-            WriteTypeScriptFile(typeScriptFile, path);
-        }
+        return typeScriptFolders.Aggregate(document, WriteTypeScriptFolder);
+    }
 
-        if (_config is not { GenerateIndexFile: true, GroupByNamespace: true })
-            return;
-
-        WriteExportsForIndexFile(typeScriptFolder.Files, path);
+    private IDocument WriteTypeScriptFolder(IDocument document, TypeScriptFolder typeScriptFolder)
+    {
+        return typeScriptFolder.Files.Aggregate(document, WriteTypeScriptFile);
     }
 
     private IDocument WriteAllFilesIntoHtml(
@@ -100,6 +104,8 @@ public class TypeForgeUiService
     )
     {
         var types = typeScriptFolders.SelectMany(x => x.Files).SelectMany(x => x.Types);
+        // IElement div = document.CreateElement("div");
+        // div.TextContent = typeScriptFile.FileName;
         IElement pre = document.CreateElement("pre");
         IElement code = document.CreateElement("code");
         code.ClassName = "language-typescript";
@@ -116,39 +122,79 @@ public class TypeForgeUiService
         return document;
     }
 
-    private IElement WriteAllFilesIntoHtml(
-        IElement div,
+    private IDocument WriteAllFilesIntoHtmlV2(
+        IDocument document,
         IEnumerable<TypeScriptFolder> typeScriptFolders
     )
     {
-        var types = typeScriptFolders.SelectMany(x => x.Files).SelectMany(x => x.Types);
-        StringBuilder sb = new StringBuilder();
-        foreach (TypeScriptType typeScriptType in types)
+        for (int folderIndex = 0; folderIndex < typeScriptFolders.Count(); folderIndex++)
         {
-            WriteTsInHtml(sb, typeScriptType);
-            if (typeScriptType != types.Last())
+            TypeScriptFolder folder = typeScriptFolders.ElementAt(folderIndex);
+            IElement div = document.CreateElement("div");
+            div.TextContent = folder.FolderName;
+            // document.Body!.AppendChild(div);
+            IElement pre = document.CreateElement("pre");
+            IElement code = document.CreateElement("code");
+            for (int fileIndex = 0; fileIndex < folder.Files.Count(); fileIndex++)
             {
-                sb.AppendLine();
+                TypeScriptFile file = folder.Files.ElementAt(fileIndex);
+                // IElement div2 = document.CreateElement("div");
+                // div2.TextContent = file.FileName;
+                // document.Body!.AppendChild(div2);
+                for (int typeIndex = 0; typeIndex < file.Types.Count(); typeIndex++)
+                {
+                    TypeScriptType type = file.Types.ElementAt(typeIndex);
+                    // IElement pre = document.CreateElement("pre");
+                    // IElement code = document.CreateElement("code");
+                    code.ClassName = "language-typescript";
+                    code = WriteTsInCodeBlock(code, type);
+                    pre.AppendChild(code);
+                    // document.Body!.AppendChild(pre);
+                }
             }
+            pre.AppendChild(div);
+            pre.AppendChild(code);
+            document.Body!.AppendChild(pre);
         }
-
-        div.TextContent = sb.ToString();
-        return div;
+        return document;
     }
 
-    private void WriteTypeScriptFile(TypeScriptFile typeScriptFile, string outputDir)
+    private IDocument WriteTypeScriptFile(IDocument document, TypeScriptFile typeScriptFile)
     {
-        var fileName = Path.Combine(outputDir, typeScriptFile.FileName);
-        var fileInfo = new FileInfo(fileName);
-        using FileStream fs = fileInfo.CreateFileSafe();
-        foreach (TypeScriptType typeScriptType in typeScriptFile.Types)
+        IElement div = document.CreateElement("div");
+        div.TextContent = typeScriptFile.FileName;
+        div.ClassName = "file-name";
+        div.Id = typeScriptFile.FileName;
+        IElement pre = document.CreateElement("pre");
+        IElement code = document.CreateElement("code");
+        code.ClassName = "language-typescript";
+        for (int typeIndex = 0; typeIndex < typeScriptFile.Types.Count(); typeIndex++)
         {
-            WriteTsFile(fs, typeScriptType);
-            if (typeScriptType != typeScriptFile.Types.Last())
+            var typeScriptType = typeScriptFile.Types.ElementAt(typeIndex);
+            code = WriteTsInCodeBlock(code, typeScriptType);
+            if (typeIndex != typeScriptFile.Types.Count() - 1)
             {
-                fs.WriteEmptyLine();
+                code.TextContent += Environment.NewLine;
             }
         }
+        pre.AppendChild(div);
+        pre.AppendChild(code);
+        document.Body!.AppendChild(pre);
+        return document;
+    }
+
+    private IDocument ToggleScript(IDocument document, string scriptId)
+    {
+        IElement? script = document.GetElementById(scriptId);
+        if (script is null)
+        {
+            throw new NullReferenceException($"Script with id {scriptId} not found");
+        }
+
+        script.TextContent = script.TextContent.Contains("none")
+            ? script.TextContent.Replace("none", "block")
+            : script.TextContent.Replace("block", "none");
+        return document;
     }
 
     private void WriteExportsForIndexFile(
