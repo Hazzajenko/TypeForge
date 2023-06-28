@@ -3,26 +3,6 @@ using TypeForge.Core.Configuration;
 
 namespace TypeForge.Core.Models;
 
-public class NamespaceWithNodes
-{
-    public ConfigNameSpaceWithPath NameSpace { get; set; } = default!;
-    public IEnumerable<ClassDeclarationSyntax> Nodes { get; set; } = default!;
-}
-
-public class NameSpaceWithNodesAndFileName
-{
-    public ConfigNameSpaceWithPath NameSpace { get; set; } = default!;
-    public string FileName { get; set; } = default!;
-    public string PathFromParentNamespace { get; set; } = default!;
-    public IEnumerable<ClassDeclarationSyntax> Nodes { get; set; } = default!;
-}
-
-public class sadasdA
-{
-    public string Name { get; set; } = default!;
-    public string PathRelativeToRoot { get; set; } = default!;
-    public IEnumerable<TypeScriptFileConfig> Files { get; set; } = default!;
-}
 
 public class TypeScriptFileConfig
 {
@@ -34,7 +14,6 @@ public class TypeScriptFolder
 {
     public string FolderName { get; set; } = default!;
     public IEnumerable<TypeScriptFile> Files { get; set; } = default!;
-    // public List<TypeScriptFolder> ChildFolders { get; set; } = default!;
 }
 
 public class TypeScriptFile

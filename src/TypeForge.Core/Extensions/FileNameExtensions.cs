@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.RegularExpressions;
 using TypeForge.Core.Configuration;
+using TypeForge.Core.Configuration.TypeForgeConfig;
 using TypeForge.Core.Models;
 
 namespace TypeForge.Core.Extensions;
@@ -8,18 +9,6 @@ namespace TypeForge.Core.Extensions;
 public static class FileNameExtensions
 {
     public static string GetFileName(this string fileName, TypeForgeConfig config)
-    {
-        var fileNameCase = config.FileNameCase;
-        var fileNamePrefix = config.TypeNamePrefix;
-        var fileNameSuffix = config.TypeNameSuffix;
-        return fileName
-            .RemoveCsExtension()
-            .ToCaseOfOption(fileNameCase)
-            .AddPrefixAndSuffix(fileNameCase, fileNamePrefix, fileNameSuffix)
-            .AddTsExtension();
-    }
-
-    public static string GetFileName(this string fileName, InputGlobalConfig config)
     {
         var fileNameCase = config.FileNameCase;
         var fileNamePrefix = config.TypeNamePrefix;

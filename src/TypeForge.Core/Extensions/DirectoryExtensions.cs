@@ -1,4 +1,6 @@
-﻿namespace TypeForge.Core.Extensions;
+﻿using TypeForge.Core.Models;
+
+namespace TypeForge.Core.Extensions;
 
 public static class DirectoryExtensions
 {
@@ -30,14 +32,15 @@ public static class DirectoryExtensions
     public static string GetPathFromParentNamespace(
         this string fileLocation,
         string parentNamespace,
-        string fileName
+        string fileName,
+        FolderNameCase folderNameCase
     )
     {
         var splitFromNamespace = fileLocation.Split(parentNamespace)[1];
         var path = fileLocation.Replace(splitFromNamespace, "");
         var takeOutFileName = path.Replace(fileName, "");
         var split = takeOutFileName.Split("\\")[takeOutFileName.Split("\\").Length - 1];
-        return split;
+        return split.ToCaseOfOption(folderNameCase);
     }
 
     public static string[] GetFilesInNamespace(this string path) =>

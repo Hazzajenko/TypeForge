@@ -1,11 +1,6 @@
-﻿using TypeForge.Core.Configuration;
+﻿using TypeForge.Core.Models;
 
-namespace TypeForge.Core.Models;
-
-// public class TypeModels
-// {
-//
-// }
+namespace TypeForge.Core.TypeConverting;
 
 public record NullableTypeOptions(NullableType NullableType)
 {

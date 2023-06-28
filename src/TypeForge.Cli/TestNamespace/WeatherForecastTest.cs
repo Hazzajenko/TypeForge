@@ -2,7 +2,7 @@ using TypeForge.Core.Attributes;
 
 namespace TypeForge.Cli.TestNamespace;
 
-[TsArchitect("weatherForecast.ts")]
+[TypeForge("weatherForecast.ts")]
 public class WeatherForecastTest
 {
     public DateOnly TestDate { get; set; }

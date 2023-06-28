@@ -26,10 +26,10 @@ public class TypeForgeOptions
         writerService.WriteFromConfig();
     }
 
-    private void HandleUseConfig()
+    private static void HandleUseConfig()
     {
         string projectDir = GetProjectDirectory();
-        var configFileType = projectDir.GetConfigFileTypeIfExist();
+        ConfigFileType configFileType = projectDir.GetConfigFileTypeIfExist();
         Log.Logger.Information("Config file type: {ConfigFileType}", configFileType);
         if (configFileType is ConfigFileType.None)
         {
@@ -47,24 +47,32 @@ public class TypeForgeOptions
         writer.WriteFromConfig();
     }
 
-    [Argument(0, Name = "directory", Description = "Directory of files to convert.")]
+    [Argument(
+        0,
+        Name = "directory",
+        Description = "Directory of files to convert. Leave empty to use config."
+    )]
     public string? Directory { get; set; } = default!;
 
-    [Argument(1, Name = "output", Description = "Directory to output files to.")]
+    [Argument(
+        1,
+        Name = "output",
+        Description = "Directory to output files to. Leave empty to use config."
+    )]
     public string? Output { get; set; } = default!;
 
     // * File
     [Option(
         ShortName = "fc",
         LongName = "fileNameCase",
-        Description = "File name case., Default = KebabCase "
+        Description = "File name case. Default = KebabCase. Example = kebab-case"
     )]
     public string FileNameCase { get; set; } = "KebabCase";
 
     [Option(
         ShortName = "fp",
         LongName = "fileNamePrefix",
-        Description = "File name prefix, Default = null"
+        Description = "File name prefix, Default = null. Example = I"
     )]
     public string? FileNamePrefix { get; set; }
 
@@ -87,21 +95,37 @@ public class TypeForgeOptions
     [Option(
         ShortName = "tm",
         LongName = "typeModel",
-        Description = "Model type. Type or Interface."
+        Description = "Type or Interface. Default = Type"
     )]
     public string TypeModel { get; set; } = "Type";
 
-    [Option(ShortName = "tc", LongName = "typeNameCase", Description = "Type name case.")]
+    [Option(
+        ShortName = "tc",
+        LongName = "typeNameCase",
+        Description = "Type name case. Default = PascalCase"
+    )]
     public string TypeNameCase { get; set; } = "PascalCase";
 
-    [Option(ShortName = "tp", LongName = "typeNamePrefix", Description = "Type name prefix.")]
+    [Option(
+        ShortName = "tp",
+        LongName = "typeNamePrefix",
+        Description = "Type name prefix. Default = null. Example = I"
+    )]
     public string? TypeNamePrefix { get; set; }
 
-    [Option(ShortName = "ts", LongName = "typeNameSuffix", Description = "Type name suffix.")]
+    [Option(
+        ShortName = "ts",
+        LongName = "typeNameSuffix",
+        Description = "Type name suffix. Default = null. Example = Model"
+    )]
     public string? TypeNameSuffix { get; set; }
 
     // * Property
-    [Option(ShortName = "pc", LongName = "propertyNameCase", Description = "Property name case.")]
+    [Option(
+        ShortName = "pc",
+        LongName = "propertyNameCase",
+        Description = "Property name case. Default = CamelCase"
+    )]
     public string PropertyNameCase { get; set; } = "CamelCase";
 
     // * Other Options
@@ -115,7 +139,7 @@ public class TypeForgeOptions
     [Option(
         ShortName = "gi",
         LongName = "generateIndexFile",
-        Description = "Generate a index file to export all generated files."
+        Description = "Generate a index file to export all generated files. Default = true"
     )]
     public bool GenerateIndexFile { get; set; } = true;
 
@@ -125,7 +149,7 @@ public class TypeForgeOptions
     [Option(
         ShortName = "nf",
         LongName = "nameSpaceInOneFile",
-        Description = "Namespace in one file."
+        Description = "Namespace in one file. Default = false"
     )]
     public bool NameSpaceInOneFile { get; set; }
 

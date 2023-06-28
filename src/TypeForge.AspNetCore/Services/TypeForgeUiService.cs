@@ -5,11 +5,10 @@ using AngleSharp.Dom;
 using Microsoft.CodeAnalysis.CSharp;
 using Serilog;
 using TypeForge.AspNetCore.Extensions;
-using TypeForge.Core.Configuration;
+using TypeForge.Core.Configuration.TypeForgeConfig;
 using TypeForge.Core.Extensions;
 using TypeForge.Core.Mapping;
 using TypeForge.Core.Models;
-using TypeForge.Core.Utils;
 
 namespace TypeForge.AspNetCore.Services;
 

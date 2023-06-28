@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.RegularExpressions;
 using TypeForge.Core.Configuration;
+using TypeForge.Core.Configuration.TypeForgeConfig;
 using TypeForge.Core.Models;
 
 namespace TypeForge.Core.Extensions;
@@ -8,16 +9,6 @@ namespace TypeForge.Core.Extensions;
 public static class TypeNameExtensions
 {
     public static string GetTypeName(this string typeName, TypeForgeConfig config)
-    {
-        var typeNamePrefix = config.TypeNamePrefix;
-        var typeNameSuffix = config.TypeNameSuffix;
-        TypeNameCase typeNameCase = config.TypeNameCase;
-        return typeName
-            .AddPrefixAndSuffix(typeNamePrefix, typeNameSuffix)
-            .ToCaseOfOption(typeNameCase);
-    }
-
-    public static string GetTypeName(this string typeName, InputGlobalConfig config)
     {
         var typeNamePrefix = config.TypeNamePrefix;
         var typeNameSuffix = config.TypeNameSuffix;

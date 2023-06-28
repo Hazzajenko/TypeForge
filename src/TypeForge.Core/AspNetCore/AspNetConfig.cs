@@ -1,4 +1,5 @@
 ﻿using TypeForge.Core.Configuration;
+using TypeForge.Core.Models;
 
 namespace TypeForge.Core.AspNetCore;
 

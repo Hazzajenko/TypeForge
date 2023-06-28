@@ -1,14 +1,13 @@
-﻿using System.Net.NetworkInformation;
-using TypeForge.Core.Extensions;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Serilog;
 using TypeForge.Core.Configuration;
+using TypeForge.Core.Configuration.TypeForgeConfig;
+using TypeForge.Core.Extensions;
 using TypeForge.Core.Models;
-using TypeForge.Core.Utils;
+using TypeForge.Core.TypeConverting.Dictionaries;
 
-namespace TypeForge.Core.Mapping;
+namespace TypeForge.Core.TypeConverting;
 
 public static class TypeMapping
 {
@@ -60,25 +59,26 @@ public static class TypeMapping
         SemanticModel semanticModel = compilation
             .AddSyntaxTrees(typeSyntax.SyntaxTree)
             .GetSemanticModel(typeSyntax.SyntaxTree);
-        var kindText = property.Type.Kind().ToString();
-        ITypeSymbol? typeSymbol = ModelExtensions.GetTypeInfo(semanticModel, property.Type).Type;
-        var typeSymbolName = typeSymbol!.Name;
+        ITypeSymbol typeSymbol = semanticModel.GetTypeInfo(property.Type).Type!;
 
-        if (kindText == "NullableType")
+        if (property.IsNullableType())
         {
             return new TypeFromCompilationResult(typeSymbol.HandleNullable(nullableType), true);
         }
 
-        if (typeSymbolName == "IEnumerable")
+        if (typeSymbol.IsArrayType())
         {
             return new TypeFromCompilationResult(
-                typeSymbol.HandleList(new NullableTypeOptions(nullableType)),
+                typeSymbol.HandleArrayType(new NullableTypeOptions(nullableType)),
                 false
             );
         }
 
-        return new TypeFromCompilationResult(typeSymbolName.Convert(), false);
+        return new TypeFromCompilationResult(typeSymbol.Convert(), false);
     }
+
+    private static bool IsNullableType(this PropertyDeclarationSyntax property) =>
+        property.Type.Kind() == SyntaxKind.NullableType;
 
     private static string HandleNullable(this ITypeSymbol typeSymbol, NullableType nullableType)
     {
@@ -93,11 +93,11 @@ public static class TypeMapping
             throw new Exception("Type is not nullable");
         ITypeSymbol nullableUnderlyingType = namedTypeSymbol.TypeArguments[0];
         return nullableUnderlyingType.Name == "IEnumerable"
-            ? HandleList(nullableUnderlyingType, new NullableTypeOptions(nullableType))
+            ? HandleArrayType(nullableUnderlyingType, new NullableTypeOptions(nullableType))
             : nullableUnderlyingType.Name.Convert(new NullableTypeOptions(nullableType));
     }
 
-    private static string HandleList(
+    private static string HandleArrayType(
         this ITypeSymbol typeSymbol,
         NullableTypeOptions? nullOptions = null
     )
@@ -107,6 +107,6 @@ public static class TypeMapping
         if (!namedTypeSymbol.IsGenericType || namedTypeSymbol.Name != "IEnumerable")
             throw new Exception("Type is not a list");
         ITypeSymbol nullableUnderlyingType = namedTypeSymbol.TypeArguments[0];
-        return nullableUnderlyingType.Name.ConvertArray(nullOptions);
+        return nullableUnderlyingType.ConvertArray(nullOptions);
     }
 }

@@ -1,16 +1,10 @@
-﻿using System.Runtime.InteropServices.ComTypes;
-using System.Text;
-using TypeForge.Core.Extensions;
-using TypeForge.Core.Mapping;
-using TypeForge.Core.Utils;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using Serilog;
 using TypeForge.Core.Configuration;
+using TypeForge.Core.Configuration.TypeForgeConfig;
+using TypeForge.Core.Extensions;
+using TypeForge.Core.Mapping;
 using TypeForge.Core.Models;
-using SyntaxExtensions = TypeForge.Core.Extensions.SyntaxExtensions;
 
 namespace TypeForge.Core.Services;
 
@@ -107,6 +101,7 @@ public class WriterService
     private void WriteTypeScriptFile(TypeScriptFile typeScriptFile, string outputDir)
     {
         var fileName = Path.Combine(outputDir, typeScriptFile.FileName);
+        Log.Logger.Information("Creating file {FileName}", fileName);
         var fileInfo = new FileInfo(fileName);
         using FileStream fs = fileInfo.CreateFileSafe();
         foreach (TypeScriptType typeScriptType in typeScriptFile.Types)

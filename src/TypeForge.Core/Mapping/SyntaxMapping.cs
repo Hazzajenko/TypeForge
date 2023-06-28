@@ -2,9 +2,11 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using TypeForge.Core.Configuration;
+using TypeForge.Core.Configuration.TypeForgeConfig;
 using TypeForge.Core.Extensions;
 using TypeForge.Core.Models;
-using TypeForge.Core.Utils;
+using TypeForge.Core.Services;
+using TypeForge.Core.TypeConverting;
 
 namespace TypeForge.Core.Mapping;
 
@@ -50,7 +52,11 @@ public static class SyntaxMapping
         SyntaxTree tree = CSharpSyntaxTree.ParseText(File.ReadAllText(file));
         var root = (CompilationUnitSyntax)tree.GetRoot();
         var fileName = file.GetFileNameFromPath();
-        var pathRelativeToRoot = file.GetPathFromParentNamespace(@nameSpace.Path, fileName);
+        var pathRelativeToRoot = file.GetPathFromParentNamespace(
+            @nameSpace.Path,
+            fileName,
+            config.FolderNameCase
+        );
         fileName = fileName.GetFileName(config);
         var types = root.DescendantNodes()
             .OfType<ClassDeclarationSyntax>()

@@ -1,8 +1,8 @@
 ﻿using System.Text;
 
-namespace TypeForge.Core.Utils;
+namespace TypeForge.Core.Extensions;
 
-public static class WriterUtils
+public static class FileStreamExtensions
 {
     public static void WriteLine(this FileStream fileStream, string content, bool endWithSemicolon)
     {
@@ -11,12 +11,6 @@ public static class WriterUtils
         );
         fileStream.Write(txt, 0, txt.Length);
     }
-
-    // public static void WriteLine(this FileStream fileStream, string content)
-    // {
-    //     Byte[] txt = new UTF8Encoding(true).GetBytes(content + Environment.NewLine);
-    //     fileStream.Write(txt, 0, txt.Length);
-    // }
 
     public static void WriteEmptyLine(this FileStream fileStream)
     {

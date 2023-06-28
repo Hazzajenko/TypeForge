@@ -73,7 +73,10 @@ public static class ConfigFileExtensions
     )
     {
         var configFilePath = Path.Combine(projectDir, configName);
-        var config = JsonSerializer.Deserialize<ConfigFile>(File.ReadAllText(configFilePath));
+        var config = JsonSerializer.Deserialize<ConfigFile>(
+            File.ReadAllText(configFilePath),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+        );
         if (config is null)
         {
             throw new Exception("Config file is null");

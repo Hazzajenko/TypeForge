@@ -14,7 +14,7 @@ public class AttributeService
     public void WriteFilesWithAttribute()
     {
         
-        var types = FindClassesWithAttribute.FindClassesWithAttributeOfType<TsArchitectAttribute>(
+        var types = FindClassesWithAttribute.FindClassesWithAttributeOfType<TypeForgeAttribute>(
             _assembly
         );
         if (types.Any())
@@ -30,7 +30,7 @@ public class AttributeService
                     Console.WriteLine($"Property: {property.Name}");
                 }
 
-                var attribute = type.GetCustomAttribute<TsArchitectAttribute>();
+                var attribute = type.GetCustomAttribute<TypeForgeAttribute>();
                 if (attribute is null)
                 {
                     throw new Exception("Attribute is null");

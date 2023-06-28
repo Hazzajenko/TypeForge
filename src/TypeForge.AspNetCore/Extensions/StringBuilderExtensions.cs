@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using TypeForge.Core.Utils;
+using TypeForge.Core.Extensions;
 
 namespace TypeForge.AspNetCore.Extensions;
 
