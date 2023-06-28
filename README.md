@@ -65,28 +65,28 @@ Alternatively, you can specify your options in a JSON config file.
   "EndLinesWithSemicolon": false,
   "Directories": [
     {
-      "Input": "C:/Users/jenki/source/dotnet/TypeForge/src/TypeForge.Cli/TestNamespace",
+      "Input": "C:/directory/to/backend/TestNamespace",
       "IncludeChildren": true,
       "Flatten": false,
       "Depth": -1,
       "KeepRootFolder": true,
-      "Output": "C:/Users/jenki/source/dotnet/TypeForge/src/TypeForge.Cli/output"
+      "Output": "C:/directory/to/frontend/output"
     },
     {
-      "Input": "C:/Users/jenki/source/dotnet/TypeForge/src/TypeForge.Cli/OtherNameSpace",
+      "Input": "C:/directory/to/backend/OtherNameSpace",
       "IncludeChildren": true,
       "Flatten": false,
       "Depth": -1,
       "KeepRootFolder": true,
-      "Output": "C:/Users/jenki/source/dotnet/TypeForge/src/TypeForge.Cli/output"
+      "Output": "C:/directory/to/frontend/output"
     },
     {
-      "Input": "C:/Users/jenki/source/dotnet/TypeForge/src/TypeForge.Cli/OtherNameSpaceTest",
+      "Input": "C:/directory/to/backend/OtherNameSpaceTest",
       "IncludeChildren": true,
       "Flatten": false,
       "Depth": -1,
       "KeepRootFolder": true,
-      "Output": "C:/Users/jenki/source/dotnet/TypeForge/src/TypeForge.Cli/output2"
+      "Output": "C:/directory/to/frontend/output2"
     }
   ]
 }
@@ -94,10 +94,6 @@ Alternatively, you can specify your options in a JSON config file.
 
 This file is JSON formatted and it is very easy to adapt to your needs. You can define multiple directory mappings with specific options, as well as global settings for the tool.
 
-
-<!-- ### nullabletype
-
-![nullabletype](<IMAGE-URL>) -->
 
 ---
 
