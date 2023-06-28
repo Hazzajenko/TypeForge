@@ -4,7 +4,7 @@
   "TypeNameSuffix": "Model",
   "FileNamePrefix": "",
   "FileNameSuffix": "Model",
-  "ExportModelType": "Type",
+  "TypeModel": "Type",
   "PropertyNameCase": "CamelCase",
   "FileNameCase": "KebabCase",
   "NullableType": "?",

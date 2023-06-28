@@ -9,6 +9,17 @@ riderModule.iml
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+deprecated-readmes/
+deprecated-readmes/**
+deprecated-readmes/**/*
+
+/deprecated-readmes/moreexamples.md
+/deprecated-readmes/README.old.md
+/deprecated-readmes/README-ex.md
+/deprecated-readmes/README=v2.md
+
+
+
 .idea/
 .idea/**
 .idea/*
