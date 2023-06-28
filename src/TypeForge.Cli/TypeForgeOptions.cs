@@ -16,7 +16,6 @@ public class TypeForgeOptions
     {
         if (Input is null || Output is null)
         {
-            Log.Logger.Information("Using config");
             HandleUseConfig();
             return;
         }
@@ -28,21 +27,30 @@ public class TypeForgeOptions
 
     private static void HandleUseConfig()
     {
-        string projectDir = GetProjectDirectory();
-        ConfigFileType configFileType = projectDir.GetConfigFileTypeIfExist();
-        Log.Logger.Information("Config file type: {ConfigFileType}", configFileType);
-        if (configFileType is ConfigFileType.None)
+        string currentDirectory = Directory.GetCurrentDirectory();
+        ConfigFileType configFileType = currentDirectory.GetConfigFileTypeIfExist();
+
+        switch (configFileType)
         {
-            throw new Exception("Config file not found");
+            case ConfigFileType.Json:
+                Log.Logger.Information("Found config file \"{ConfigName}\"", "forge.json");
+                break;
+            case ConfigFileType.Yml:
+                Log.Logger.Information("Found config file \"{ConfigName}\"", "forge.yml");
+                break;
+            case ConfigFileType.None:
+            default:
+                throw new ArgumentOutOfRangeException();
         }
 
-        CliConfigFile cliConfig = projectDir.GetConfigFile(configFileType);
+        CliConfigFile cliConfig = currentDirectory.GetConfigFile(configFileType);
 
-        if (cliConfig.Directories is null)
+        if (cliConfig.Directories.Any() is false)
         {
-            throw new Exception("Config file namespaces is null");
+            Log.Error("Config file directories is empty. Exiting...");
+            Environment.Exit(0);
         }
-        var globalConfig = cliConfig.ToTypeForgeConfig(projectDir);
+        var globalConfig = cliConfig.ToTypeForgeConfig(currentDirectory);
         var writer = new WriterService(globalConfig);
         writer.WriteFromConfig();
     }

@@ -19,9 +19,6 @@ public class TypeForgeUiService
     private readonly ILogger _logger;
     private readonly bool _endLinesWithSemicolon;
     private readonly bool _generateIndexFile;
-
-    // private readonly bool _groupByNamespace;
-    // private readonly bool _nameSpaceInOneFile;
     private IDocument? _document;
 
     public TypeForgeUiService(TypeForgeConfig config)
@@ -29,8 +26,6 @@ public class TypeForgeUiService
         _config = config;
         _endLinesWithSemicolon = _config.EndLinesWithSemicolon;
         _generateIndexFile = _config.GenerateIndexFile;
-        // _groupByNamespace = _config.GroupByNamespace;
-        // _nameSpaceInOneFile = _config.NameSpaceInOneFile;
         _logger = Log.Logger.ForContext<TypeForgeUiService>();
     }
 

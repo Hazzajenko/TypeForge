@@ -4,19 +4,36 @@
   "TypeNameSuffix": "Model",
   "FileNamePrefix": "",
   "FileNameSuffix": "Model",
-  "ExportModelType": "Type",
+  "TypeModel": "Type",
   "PropertyNameCase": "CamelCase",
   "FileNameCase": "KebabCase",
-  "NullableType": "Undefined",
+  "NullableType": "?",
   "GenerateIndexFile": true,
-  "GroupByNameSpace": true,
-  "NameSpaceInOneFile": false,
   "EndLinesWithSemicolon": false,
-  "NameSpaces": [
+  "Directories": [
     {
-      "Name": "Contracts",
+      "Input": "C:/Users/jenki/source/dotnet/TypeForge/src/Samples/Sample.AspNetCore/TestNamespace",
       "IncludeChildren": true,
-      "Output": "/output/for/namespace1"
+      "Flatten": false,
+      "Depth": -1,
+      "KeepRootFolder": true,
+      "Output": "C:/Users/jenki/source/dotnet/TypeForge/src/Samples/Sample.AspNetCore/output"
+    },
+    {
+      "Input": "C:/Users/jenki/source/dotnet/TypeForge/src/Samples/Sample.AspNetCore/OtherNameSpace",
+      "IncludeChildren": true,
+      "Flatten": false,
+      "Depth": -1,
+      "KeepRootFolder": true,
+      "Output": "C:/Users/jenki/source/dotnet/TypeForge/src/Samples/Sample.AspNetCore/output"
+    },
+    {
+      "Input": "C:/Users/jenki/source/dotnet/TypeForge/src/Samples/Sample.AspNetCore/OtherNameSpaceTest",
+      "IncludeChildren": true,
+      "Flatten": false,
+      "Depth": -1,
+      "KeepRootFolder": true,
+      "Output": "C:/Users/jenki/source/dotnet/TypeForge/src/Samples/Sample.AspNetCore/output2"
     }
   ]
 }

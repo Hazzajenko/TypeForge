@@ -9,7 +9,6 @@ public static class FileExtensions
     {
         if (file.Directory!.Exists)
             return file.Create();
-        Log.Logger.Information("Creating directory {Directory}", file.Directory.FullName);
         file.Directory.Create();
 
         return file.Create();

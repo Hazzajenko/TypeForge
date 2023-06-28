@@ -1,4 +1,4 @@
-# TypeForge
+﻿# TypeForge
 
 TypeForge is a powerful tool designed to map C# classes to TypeScript types. Whether you're developing an API or building a complex application, TypeForge provides an efficient solution to maintain consistent models across your C# backend and TypeScript frontend.
 
@@ -12,50 +12,6 @@ TypeForge is a powerful tool designed to map C# classes to TypeScript types. Whe
 * Generate an index file for easy exports
 * Option to end lines with semicolons
 
-## Installation
-
-To use TypeForge in your project, follow these steps:
-
-1. Install the TypeForge.Cli package from NuGet by running the following command in the Package Manager Console or by using the .NET CLI:
-
-   ```shell
-   dotnet tool install --global TypeForge.Cli
-   ```
-
-   This command will install the TypeForge.Cli tool globally on your machine.
-
-2. Once the installation is complete, you can verify that the tool is installed correctly by running the following command:
-
-   ```shell
-   typeforge --help
-   ```
-
-   This command will display the help menu for the TypeForge.Cli tool.
-
-
-
-[//]: # (2. Once the installation is complete, you can verify that the tool is installed correctly by running the following command:)
-
-[//]: # ()
-[//]: # (   ```shell)
-
-[//]: # (   typeforge --version)
-
-[//]: # (   ```)
-
-[//]: # ()
-[//]: # (   This command will display the version number of the TypeForge.Cli tool.)
-
-[//]: # ()
-
-3. You're all set! You can now start using TypeForge by providing the necessary input and configuration to generate TypeScript types or interfaces from your C# classes.
-
-If you prefer to manually download and install the TypeForge.Cli package, you can find it on [NuGet.org](https://www.nuget.org/packages/TypeForge.Cli).
-
-Please refer below for detailed instructions on how to utilize TypeForge in your project.
-
-[//]: # (Please refer to the [Usage]&#40;#usage&#41; section for detailed instructions on how to utilize TypeForge in your project.)
-
 ## CLI Arguments
 
 The CLI tool supports the following arguments:
@@ -66,6 +22,9 @@ The CLI tool supports the following arguments:
 | output   | Directory to output files to. Leave empty to use config.  |
 
 Additionally, the CLI supports the following options:
+
+[//]: # ([Type or Interface]&#40;#type-or-interface--tm---typemodel&#41;: Specifies whether the generated TypeScript code should represent types or interfaces.)
+
 
 | Option                                                                             | Description                                                                 |
 |------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
@@ -834,3 +793,5 @@ C:/directory/to/frontend/output/
 Note: The `keepRootFolder` option can be useful if you want to maintain the original directory structure of the input files in the output, or if you prefer a flatter output structure by excluding the root folders.
 
 ---
+
+

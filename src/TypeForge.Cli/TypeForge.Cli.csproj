@@ -10,6 +10,10 @@
         <ToolCommandName>forge</ToolCommandName>
         <Description>Tool to generate typescript types from your c# project</Description>
         <PackageTags>TypeForge;Tool;CSharpToTypeScript</PackageTags>
+        <PackageId>TypeForge.Cli</PackageId>
+        <Authors>Harry Jenkins</Authors>
+        <Company>HazzaJenko</Company>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
     
 
@@ -20,19 +24,21 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="CommandLineParser" Version="2.9.1" />
-      <PackageReference Include="Fluid.Core" Version="2.4.0" />
+        <None Include="docs\README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+
+    <ItemGroup>
       <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.2" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TypeForge.Core\TypeForge.Core.csproj" />
+        <None Update="LICENSE">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
-      <Reference Include="Microsoft.AspNetCore.Mvc.RazorPages">
-        <HintPath>..\..\..\..\..\..\..\Program Files\dotnet\shared\Microsoft.AspNetCore.App\7.0.0\Microsoft.AspNetCore.Mvc.RazorPages.dll</HintPath>
-      </Reference>
+      <ProjectReference Include="..\TypeForge.Core\TypeForge.Core.csproj" />
     </ItemGroup>
 
 </Project>
