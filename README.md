@@ -1,5 +1,3 @@
-Sure! Here is your updated Readme with a list of options linking to sections. Replace `<IMAGE-URL>` with the URL to your image or GIF.
-
 # TypeForge
 
 TypeForge is a powerful tool designed to map C# classes to TypeScript types. Whether you're developing an API or building a complex application, TypeForge provides an efficient solution to maintain consistent models across your C# backend and TypeScript frontend.
