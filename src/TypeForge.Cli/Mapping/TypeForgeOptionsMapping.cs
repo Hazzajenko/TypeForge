@@ -4,19 +4,19 @@ using TypeForge.Core.Models;
 
 namespace TypeForge.Cli.Mapping;
 
-public static class InputMapping
+public static class TypeForgeOptionsMapping
 {
     public static TypeForgeConfig ToTypeForgeConfig(this TypeForgeOptions input)
     {
         return new TypeForgeConfig
         {
-            NameSpaces = new List<ConfigNameSpaceWithPath>
+            ConfigDirectories = new List<ConfigDirectoryWithPath>
             {
                 new()
                 {
-                    Name = input.Directory!,
+                    Input = input.Input!,
                     Output = input.Output!,
-                    Path = input.Directory!
+                    Path = input.Input!
                 }
             },
             FolderNameCase = input.FolderNameCase.ToFolderNameCase(),
@@ -28,8 +28,8 @@ public static class InputMapping
             FileNameCase = input.FileNameCase.ToFileNameCase(),
             NullableType = input.NullableType.ToNullableType(),
             GenerateIndexFile = input.GenerateIndexFile,
-            GroupByNamespace = input.GroupByNameSpace,
-            NameSpaceInOneFile = input.NameSpaceInOneFile,
+            // GroupByNamespace = input.GroupByNameSpace,
+            // NameSpaceInOneFile = input.NameSpaceInOneFile,
         };
     }
 }

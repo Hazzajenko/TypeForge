@@ -11,92 +11,404 @@ namespace TypeForge.Core.Services;
 public class WriterService
 {
     private readonly TypeForgeConfig _config;
-    private readonly bool _endLinesWithSemicolon;
-    private readonly bool _generateIndexFile;
-    private readonly bool _groupByNamespace;
-    private readonly bool _nameSpaceInOneFile;
+    private bool EndLinesWithSemicolon => _config.EndLinesWithSemicolon;
+    private bool GenerateIndexFile => _config.GenerateIndexFile;
+
+    // private readonly bool _groupByNamespace;
+    // private readonly bool _nameSpaceInOneFile;
 
     public WriterService(TypeForgeConfig config)
     {
         _config = config;
-        _endLinesWithSemicolon = config.EndLinesWithSemicolon;
-        _generateIndexFile = config.GenerateIndexFile;
-        _groupByNamespace = config.GroupByNamespace;
-        _nameSpaceInOneFile = config.NameSpaceInOneFile;
+        // EndLinesWithSemicolon = config.EndLinesWithSemicolon;
+        // GenerateIndexFile = config.GenerateIndexFile;
+        // _groupByNamespace = config.GroupByNamespace;
+        // _nameSpaceInOneFile = config.NameSpaceInOneFile;
     }
 
     public void WriteFromConfig()
     {
-        CSharpCompilation compilation = _config.NameSpaces.GetCSharpCompilation();
-        var typeScriptFolders = _config.NameSpaces.GetTypeScriptFolders(compilation, _config);
-        var outputDir = Path.Combine(_config.ProjectDir, "output");
-        Log.Information("Writing to {OutputDir}", outputDir);
-
-        if (_nameSpaceInOneFile)
-        {
-            WriteAllFilesIntoOneFile(typeScriptFolders, compilation);
-            return;
-        }
+        CSharpCompilation compilation = _config.ConfigDirectories.GetCSharpCompilation();
+        var typeScriptFolders = _config.ConfigDirectories.GetTypeScriptFolders(
+            compilation,
+            _config
+        );
+        // var outputDir = Path.Combine(_config.ProjectDir, "output");
+        //
+        // if (_nameSpaceInOneFile)
+        // {
+        //     WriteAllFilesIntoOneFile(typeScriptFolders);
+        //     return;
+        // }
 
         foreach (TypeScriptFolder typeScriptFolder in typeScriptFolders)
         {
-            WriteTypeScriptFolder(typeScriptFolder, outputDir);
+            HandleTypeScriptFolderWrite(typeScriptFolder, typeScriptFolders);
         }
 
-        if (_generateIndexFile)
+        if (GenerateIndexFile)
         {
-            var stringNames = typeScriptFolders.Select(x => $"{x.FolderName}/index").ToArray();
-            WriteExportsForIndexFile(stringNames, outputDir);
+            WriteIndexFilesForAllTopFolders(typeScriptFolders);
         }
-
-        if (_config is not { GenerateIndexFile: true, GroupByNamespace: false })
-            return;
-
-        WriteExportsForIndexFile(typeScriptFolders, outputDir);
+        //
+        // if (_config is not { GenerateIndexFile: true, GroupByNamespace: false })
+        //     return;
+        //
+        // WriteExportsForIndexFile(typeScriptFolders, outputDir);
     }
 
-    private void WriteTypeScriptFolder(TypeScriptFolder typeScriptFolder, string outputDir)
+    private void WriteIndexFilesForAllTopFolders(IEnumerable<TypeScriptFolder> typeScriptFolders)
     {
-        var path = Path.Combine(outputDir, typeScriptFolder.FolderName);
-        if (_groupByNamespace is false)
+        var typeScriptTopFolders = GetAllTopFolders(typeScriptFolders);
+        var typeScriptTopFolders2 = GetAllTopFoldersUnique(typeScriptFolders);
+        foreach (TypeScriptFolder typeScriptTopFolder in typeScriptTopFolders2)
         {
-            path = outputDir;
+            Log.Information("TopFolder: {TopFolder}", typeScriptTopFolder.OutputPath);
         }
+
+        var topFoldersGroupedByOutputPath = typeScriptTopFolders
+            .GroupBy(x => x.OutputPath)
+            .Select(x => x.First().OutputPath)
+            .ToList();
+
+        foreach (var topFolder in topFoldersGroupedByOutputPath)
+        {
+            var foldersInTopFolder = GetTypeScriptFoldersByOutputPath(
+                typeScriptTopFolders,
+                topFolder
+            );
+
+            var outputPathsForTopFolders = foldersInTopFolder.Select(x => x.OutputPath).ToArray();
+
+            IEnumerable<ConfigDirectoryWithPath> folderConfig = _config.ConfigDirectories
+                .Where(x => outputPathsForTopFolders.Contains(x.Output))
+                .ToList();
+
+            if (folderConfig.Any(x => x.KeepRootFolder is false))
+                continue;
+
+            var exportNames = foldersInTopFolder
+                .Select(x => x.FolderName)
+                .Select(x => $"{x}/index")
+                .ToArray();
+
+            if (exportNames.Contains("export * from './other-name-space/index'"))
+            {
+                Log.Information("Found other name space");
+            }
+
+            WriteExportsForIndexFile(exportNames, topFolder);
+        }
+    }
+
+    private void HandleTypeScriptFolderWrite(
+        TypeScriptFolder typeScriptFolder,
+        IEnumerable<TypeScriptFolder> typeScriptFolders
+    )
+    {
+        ConfigDirectoryWithPath configD = GetConfigDirectoryByFolderName(
+            typeScriptFolder.FolderName
+        );
+        if (configD.Flatten is false)
+        {
+            if (configD.KeepRootFolder is false)
+            {
+                var adjustedFolder = new TypeScriptFolder(typeScriptFolder) { FolderName = "" };
+                var adjustedChildFolders = GetChildFolders(typeScriptFolders, typeScriptFolder)
+                    .Select(
+                        x =>
+                            new TypeScriptFolder(x)
+                            {
+                                FolderName = x.FolderName.Replace(
+                                    $"{typeScriptFolder.FolderName}{Path.DirectorySeparatorChar}",
+                                    ""
+                                )
+                            }
+                    );
+                var adjustedChildFolderNames = adjustedChildFolders.Select(x => x.FolderName);
+                WriteTypeScriptFolderToPersonalOutput(adjustedFolder, adjustedChildFolderNames);
+                return;
+            }
+
+            var childFolders = GetChildFolders(typeScriptFolders, typeScriptFolder);
+            var childFolderNames = childFolders.Select(x => x.FolderName);
+            WriteTypeScriptFolderToPersonalOutput(typeScriptFolder, childFolderNames);
+        }
+        else
+        {
+            if (IsTopFolder(typeScriptFolder) is false)
+                return;
+            if (configD.KeepRootFolder is false)
+            {
+                // TypeScriptFolder adjustedFolder = TypeScriptFolder.RemoveFolderName(
+                //     typeScriptFolder
+                // );
+                // Log.Information("AdjustedFolder: {AdjustedFolder}", adjustedFolder.FolderName);
+                var adjustedFolder = new TypeScriptFolder(typeScriptFolder) { FolderName = "" };
+                var adjustedChildFolders = GetChildTypeScriptFolders(
+                        typeScriptFolders,
+                        adjustedFolder
+                    )
+                    .Select(
+                        x =>
+                            new ChildTypeScriptFolder(x)
+                            {
+                                FolderName = x.FolderName.Replace(
+                                    $"{typeScriptFolder.FolderName}{Path.DirectorySeparatorChar}",
+                                    ""
+                                )
+                            }
+                    );
+                WriteTypeScriptFolderToPersonalOutputFlatSubFolders(
+                    adjustedFolder,
+                    adjustedChildFolders
+                );
+
+                return;
+            }
+            var childFolders = GetChildTypeScriptFolders(typeScriptFolders, typeScriptFolder);
+            WriteTypeScriptFolderToPersonalOutputFlatSubFolders(typeScriptFolder, childFolders);
+        }
+    }
+
+    private static IEnumerable<TypeScriptFolder> GetChildFolders(
+        IEnumerable<TypeScriptFolder> typeScriptFolders,
+        TypeScriptFolder typeScriptFolder
+    )
+    {
+        return typeScriptFolders
+            .Where(
+                x =>
+                    x.FolderName.StartsWith(typeScriptFolder.FolderName)
+                    && x.FolderName != typeScriptFolder.FolderName
+            )
+            .Where(x =>
+            {
+                var amountOfSlashesForParent = typeScriptFolder.FolderName.Count(
+                    c => c == Path.DirectorySeparatorChar
+                );
+                var amountOfSlashesForChild = x.FolderName.Count(
+                    c => c == Path.DirectorySeparatorChar
+                );
+                if (typeScriptFolder.FolderName == "")
+                {
+                    return amountOfSlashesForChild == 0;
+                }
+
+                return amountOfSlashesForChild - amountOfSlashesForParent == 1;
+            })
+            .Select(x =>
+            {
+                if (x.FolderName.Contains(Path.DirectorySeparatorChar))
+                {
+                    return new TypeScriptFolder
+                    {
+                        FolderName = x.FolderName.Split(Path.DirectorySeparatorChar).Last(),
+                        Files = x.Files
+                    };
+                }
+
+                return x;
+            })
+            .DistinctBy(x => x.FolderName)
+            .ToList();
+    }
+
+    private static IEnumerable<ChildTypeScriptFolder> GetChildTypeScriptFolders(
+        IEnumerable<TypeScriptFolder> typeScriptFolders,
+        TypeScriptFolder typeScriptFolder
+    )
+    {
+        return typeScriptFolders
+            .Where(
+                x =>
+                    x.FolderName.StartsWith(typeScriptFolder.FolderName)
+                    && x.FolderName != typeScriptFolder.FolderName
+            )
+            .Where(x =>
+            {
+                var amountOfSlashesForParent = typeScriptFolder.FolderName.Count(
+                    c => c == Path.DirectorySeparatorChar
+                );
+                var amountOfSlashesForChild = x.FolderName.Count(
+                    c => c == Path.DirectorySeparatorChar
+                );
+                if (typeScriptFolder.FolderName == "")
+                {
+                    return amountOfSlashesForChild == 0;
+                }
+
+                return amountOfSlashesForChild - amountOfSlashesForParent == 1;
+            })
+            .Select(x =>
+            {
+                var childFolders = GetChildTypeScriptFolders(typeScriptFolders, x);
+
+                return new ChildTypeScriptFolder
+                {
+                    FolderName = x.FolderName,
+                    Files = x.Files,
+                    OutputPath = x.OutputPath,
+                    ChildFolders = childFolders
+                };
+            })
+            // .Select(x =>
+            // {
+            //     if (x.FolderName.Contains(Path.DirectorySeparatorChar))
+            //     {
+            //         return new ChildTypeScriptFolder
+            //         {
+            //             FolderName = x.FolderName.Split(Path.DirectorySeparatorChar).Last(),
+            //             Files = x.Files
+            //         };
+            //     }
+            //
+            //     return new ChildTypeScriptFolder { FolderName = x.FolderName, Files = x.Files };
+            // })
+            .ToList();
+    }
+
+    private static bool IsTopFolder(TypeScriptFolder typeScriptFolder)
+    {
+        return typeScriptFolder.FolderName.Contains(Path.DirectorySeparatorChar) is false;
+    }
+
+    private static IEnumerable<TypeScriptFolder> GetAllTopFolders(
+        IEnumerable<TypeScriptFolder> typeScriptFolders
+    )
+    {
+        return typeScriptFolders
+            .Where(x => x.FolderName.Contains(Path.DirectorySeparatorChar) is false)
+            .Distinct()
+            .ToList();
+    }
+
+    private static IEnumerable<TypeScriptFolder> GetAllTopFoldersUnique(
+        IEnumerable<TypeScriptFolder> typeScriptFolders
+    )
+    {
+        return typeScriptFolders
+            .Where(x => x.FolderName.Contains(Path.DirectorySeparatorChar) is false)
+            .GroupBy(x => x.FolderName)
+            .Select(x => x.OrderByDescending(c => c.OutputPath.Length).First())
+            .Distinct()
+            .ToList();
+    }
+
+    private void WriteTypeScriptFolderToPersonalOutput(
+        TypeScriptFolder typeScriptFolder,
+        IEnumerable<string> childFolderNames
+    )
+    {
+        var path = Path.Combine(typeScriptFolder.OutputPath, typeScriptFolder.FolderName);
+        // if (_groupByNamespace is false)
+        // {
+        //     path = typeScriptFolder.OutputPath;
+        // }
         foreach (TypeScriptFile typeScriptFile in typeScriptFolder.Files)
         {
             WriteTypeScriptFile(typeScriptFile, path);
         }
 
-        if (_config is not { GenerateIndexFile: true, GroupByNamespace: true })
+        if (GenerateIndexFile is false)
             return;
 
-        WriteExportsForIndexFile(typeScriptFolder.Files, path);
+        // if (_config is not { GenerateIndexFile: true, GroupByNamespace: true })
+        // return;
+
+        WriteExportsForIndexFile(typeScriptFolder.Files, path, childFolderNames);
     }
 
-    private void WriteAllFilesIntoOneFile(
-        IEnumerable<TypeScriptFolder> typeScriptFolders,
-        CSharpCompilation compilation
+    private void WriteTypeScriptFolderToPersonalOutputFlatSubFolders(
+        TypeScriptFolder typeScriptFolder,
+        IEnumerable<ChildTypeScriptFolder> childFolders
     )
     {
-        var outputDir = Path.Combine(_config.ProjectDir, "output\\");
-        var fileInfo = new FileInfo($"{outputDir}all.ts");
-        using FileStream fs = fileInfo.CreateFileSafe();
-        var types = typeScriptFolders.GetTypesFromFolders();
-        foreach (TypeScriptType typeScriptType in types)
+        var path = Path.Combine(typeScriptFolder.OutputPath, typeScriptFolder.FolderName);
+        // if (_groupByNamespace is false)
+        // {
+        //     path = typeScriptFolder.OutputPath;
+        // }
+        foreach (TypeScriptFile typeScriptFile in typeScriptFolder.Files)
         {
-            WriteTsFile(fs, typeScriptType);
-            if (typeScriptType != types.Last())
-            {
-                fs.WriteEmptyLine();
-            }
+            WriteTypeScriptFile(typeScriptFile, path);
         }
 
-        if (_config is not { GenerateIndexFile: true, GroupByNamespace: false })
+        foreach (ChildTypeScriptFolder childFolder in childFolders)
+        {
+            foreach (TypeScriptFile typeScriptFile in childFolder.Files)
+            {
+                WriteTypeScriptFile(typeScriptFile, path);
+            }
+
+            WriteAllFilesInSubFolders(childFolder, path);
+        }
+
+        // if (_config is not { GenerateIndexFile: true, GroupByNamespace: true })
+        //     return;
+
+        if (GenerateIndexFile is false)
             return;
 
-        var fileNames = new List<string> { fileInfo.Name };
-        WriteExportsForIndexFile(fileNames, outputDir);
+        var allFiles = typeScriptFolder.Files.Concat(childFolders.SelectMany(x => x.Files));
+
+        WriteExportsForIndexFile(allFiles, path);
     }
+
+    private void WriteAllFilesInSubFolders(ChildTypeScriptFolder childFolder, string path)
+    {
+        foreach (ChildTypeScriptFolder childFolderChildFolder in childFolder.ChildFolders)
+        {
+            foreach (TypeScriptFile typeScriptFile in childFolderChildFolder.Files)
+            {
+                WriteTypeScriptFile(typeScriptFile, path);
+            }
+        }
+    }
+
+    // private void WriteTypeScriptFolder(
+    //     TypeScriptFolder typeScriptFolder,
+    //     string outputDir,
+    //     IEnumerable<string> childFolderNames
+    // )
+    // {
+    //     var path = Path.Combine(outputDir, typeScriptFolder.FolderName);
+    //     if (_groupByNamespace is false)
+    //     {
+    //         path = outputDir;
+    //     }
+    //     foreach (TypeScriptFile typeScriptFile in typeScriptFolder.Files)
+    //     {
+    //         WriteTypeScriptFile(typeScriptFile, path);
+    //     }
+    //
+    //     if (_config is not { GenerateIndexFile: true, GroupByNamespace: true })
+    //         return;
+    //
+    //     WriteExportsForIndexFile(typeScriptFolder.Files, path, childFolderNames);
+    // }
+
+    // private void WriteAllFilesIntoOneFile(IEnumerable<TypeScriptFolder> typeScriptFolders)
+    // {
+    //     var outputDir = Path.Combine(_config.ProjectDir, "output\\");
+    //     var fileInfo = new FileInfo($"{outputDir}all.ts");
+    //     using FileStream fs = fileInfo.CreateFileSafe();
+    //     var types = typeScriptFolders.GetTypesFromFolders();
+    //     foreach (TypeScriptType typeScriptType in types)
+    //     {
+    //         WriteTsFile(fs, typeScriptType);
+    //         if (typeScriptType != types.Last())
+    //         {
+    //             fs.WriteEmptyLine();
+    //         }
+    //     }
+    //
+    //     if (_config is not { GenerateIndexFile: true, GroupByNamespace: false })
+    //         return;
+    //
+    //     var fileNames = new List<string> { fileInfo.Name };
+    //     WriteExportsForIndexFile(fileNames, outputDir);
+    // }
 
     private void WriteTypeScriptFile(TypeScriptFile typeScriptFile, string outputDir)
     {
@@ -128,7 +440,11 @@ public class WriterService
 
         foreach (var line in linesToWrite)
         {
-            indexFs.WriteLine(line, _endLinesWithSemicolon);
+            if (line.Contains("./other-name-space-test/index"))
+            {
+                Log.Logger.Information("Found");
+            }
+            indexFs.WriteLine(line, EndLinesWithSemicolon);
         }
     }
 
@@ -138,7 +454,7 @@ public class WriterService
     )
     {
         string indexFile = Path.Combine(outputDir, "index.ts");
-        Log.Logger.Information("Creating index file {IndexFile}", indexFile);
+        // Log.Logger.Information("Creating index file {IndexFile}", indexFile);
         var indexTemplateFile = new FileInfo(indexFile);
         using FileStream indexFs = indexTemplateFile.CreateFileSafe();
 
@@ -146,22 +462,62 @@ public class WriterService
         {
             string fileName = typeScriptFile.FileName.TakeOutTsExtension();
             string exportModel = $"export * from './{fileName}'";
-            indexFs.WriteLine(exportModel, _endLinesWithSemicolon);
+            if (exportModel.Contains("./other-name-space-test/index"))
+            {
+                Log.Logger.Information("Found");
+            }
+            indexFs.WriteLine(exportModel, EndLinesWithSemicolon);
+        }
+    }
+
+    private void WriteExportsForIndexFile(
+        IEnumerable<TypeScriptFile> typeScriptFiles,
+        string outputDir,
+        IEnumerable<string> childFolderNames
+    )
+    {
+        string indexFile = Path.Combine(outputDir, "index.ts");
+        var indexTemplateFile = new FileInfo(indexFile);
+        using FileStream indexFs = indexTemplateFile.CreateFileSafe();
+
+        foreach (TypeScriptFile typeScriptFile in typeScriptFiles)
+        {
+            string fileName = typeScriptFile.FileName.TakeOutTsExtension();
+            string exportModel = $"export * from './{fileName}'";
+            if (exportModel.Contains("./other-name-space-test/index"))
+            {
+                Log.Logger.Information("Found");
+            }
+            indexFs.WriteLine(exportModel, EndLinesWithSemicolon);
+        }
+
+        foreach (string childFolderName in childFolderNames)
+        {
+            string exportModel = $"export * from './{childFolderName}/index'";
+            if (exportModel.Contains("./other-name-space-test/index"))
+            {
+                Log.Logger.Information("Found");
+            }
+            indexFs.WriteLine(exportModel, EndLinesWithSemicolon);
         }
     }
 
     private void WriteExportsForIndexFile(IEnumerable<string> fileNames, string outputDir)
     {
         string indexFile = Path.Combine(outputDir, "index.ts");
-        Log.Logger.Information("Creating index file {IndexFile}", indexFile);
         var indexTemplateFile = new FileInfo(indexFile);
         using FileStream indexFs = indexTemplateFile.CreateFileSafe();
 
         foreach (string fileName in fileNames)
         {
             var exportFileName = fileName.TakeOutTsExtension();
+
             string exportModel = $"export * from './{exportFileName}'";
-            indexFs.WriteLine(exportModel, _endLinesWithSemicolon);
+            if (exportModel.Contains("./other-name-space-test/index"))
+            {
+                Log.Logger.Information("Found");
+            }
+            indexFs.WriteLine(exportModel, EndLinesWithSemicolon);
         }
     }
 
@@ -173,9 +529,35 @@ public class WriterService
         foreach (var typeProperty in typeScriptType.Properties)
         {
             var property = $"{typeProperty.Name}: {typeProperty.Type}";
-            fs.WriteLineWithTab(property, _endLinesWithSemicolon);
+            fs.WriteLineWithTab(property, EndLinesWithSemicolon);
         }
 
         fs.WriteLine("}", false);
+    }
+
+    public ConfigDirectoryWithPath GetConfigDirectoryByFolderName(string folderName)
+    {
+        return _config.ConfigDirectories
+                .Where(x =>
+                {
+                    var xFolderName = x.Input
+                        .GetLastDirectoryInPath()
+                        .ToCaseOfOption(_config.FolderNameCase);
+                    var bFolderName = folderName.Contains(Path.DirectorySeparatorChar)
+                        ? folderName.GetStartOfPath()
+                        : folderName;
+                    // attempted.Add((bFolderName, xFolderName));
+                    return xFolderName == bFolderName;
+                })
+                .SingleOrDefault()
+            ?? throw new ArgumentNullException(nameof(GetConfigDirectoryByFolderName));
+    }
+
+    public IEnumerable<TypeScriptFolder> GetTypeScriptFoldersByOutputPath(
+        IEnumerable<TypeScriptFolder> typeScriptFolders,
+        string outputPath
+    )
+    {
+        return typeScriptFolders.Where(x => x.OutputPath == outputPath).ToList();
     }
 }

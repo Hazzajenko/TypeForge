@@ -19,8 +19,9 @@ public class TypeForgeUiService
     private readonly ILogger _logger;
     private readonly bool _endLinesWithSemicolon;
     private readonly bool _generateIndexFile;
-    private readonly bool _groupByNamespace;
-    private readonly bool _nameSpaceInOneFile;
+
+    // private readonly bool _groupByNamespace;
+    // private readonly bool _nameSpaceInOneFile;
     private IDocument? _document;
 
     public TypeForgeUiService(TypeForgeConfig config)
@@ -28,8 +29,8 @@ public class TypeForgeUiService
         _config = config;
         _endLinesWithSemicolon = _config.EndLinesWithSemicolon;
         _generateIndexFile = _config.GenerateIndexFile;
-        _groupByNamespace = _config.GroupByNamespace;
-        _nameSpaceInOneFile = _config.NameSpaceInOneFile;
+        // _groupByNamespace = _config.GroupByNamespace;
+        // _nameSpaceInOneFile = _config.NameSpaceInOneFile;
         _logger = Log.Logger.ForContext<TypeForgeUiService>();
     }
 
@@ -51,14 +52,19 @@ public class TypeForgeUiService
         string html = await GetInitialIndexHtml();
         IDocument document = await context.OpenAsync(req => req.Content(html));
 
-        CSharpCompilation compilation = _config.NameSpaces.GetCSharpCompilation();
-        var typeScriptFolders = _config.NameSpaces.GetTypeScriptFolders(compilation, _config);
+        CSharpCompilation compilation = _config.ConfigDirectories.GetCSharpCompilation();
+        var typeScriptFolders = _config.ConfigDirectories.GetTypeScriptFolders(
+            compilation,
+            _config
+        );
         var outputDir = Path.Combine(_config.ProjectDir, "output");
         Log.Information("Writing to {OutputDir}", outputDir);
 
-        document = _groupByNamespace
-            ? WriteTypeScriptFilesInGroups(document, typeScriptFolders)
-            : WriteAllFilesIntoHtmlV2(document, typeScriptFolders);
+        document = WriteAllFilesIntoHtmlV2(document, typeScriptFolders);
+
+        // document = _groupByNamespace
+        //     ? WriteTypeScriptFilesInGroups(document, typeScriptFolders)
+        //     : WriteAllFilesIntoHtmlV2(document, typeScriptFolders);
         var updatedDoc = document.DocumentElement.OuterHtml;
         _logger.Information("{Html}", updatedDoc);
         _document = document;

@@ -1,5 +1,3 @@
 export * from './weather-forecast-tes222t.model'
 export * from './weather-forecast-test.model'
-export * from './dsadsadasdas.model'
-export * from './send-test-name-class.model'
-export * from './child-name-space-class.model'
+export * from './send-test-namespace/index'

@@ -15,6 +15,7 @@
   "NameSpaces": [
     {
       "Name": "Contracts",
+      "IncludeChildren": true,
       "Output": "/output/for/namespace1"
     }
   ]

@@ -2,7 +2,7 @@
 
 namespace TypeForge.Core.Configuration;
 
-public class ConfigFile
+public class CliConfigFile
 {
     public string FolderNameCase { get; set; } = "KebabCase";
     public string? TypeNamePrefix { get; set; }
@@ -18,16 +18,21 @@ public class ConfigFile
     public bool GroupByNameSpace { get; set; }
     public bool NameSpaceInOneFile { get; set; }
     public bool EndLinesWithSemicolon { get; set; }
-    public ConfigNameSpace[] NameSpaces { get; set; } = default!;
+    public ConfigDirectories[] Directories { get; set; } = default!;
 }
 
-public class ConfigNameSpace
+public class ConfigDirectories
 {
-    public string Name { get; set; } = default!;
+    public string Input { get; set; } = default!;
+    public bool IncludeChildren { get; set; } = true;
+    public bool Flatten { get; set; } = false;
+
+    public int Depth { get; set; } = -1;
+    public bool KeepRootFolder { get; set; } = true;
     public string Output { get; set; } = default!;
 }
 
-public class ConfigNameSpaceWithPath : ConfigNameSpace
+public class ConfigDirectoryWithPath : ConfigDirectories
 {
     public string Path { get; set; } = default!;
 }

@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using TypeForge.AspNetCore.Extensions;
+using TypeForge.AspNetCore.Mapping;
 using TypeForge.AspNetCore.Services;
 using TypeForge.Core.Configuration;
 using TypeForge.Core.Extensions;
@@ -28,7 +30,7 @@ public static class TypeForgeCoreServices
             throw new Exception("Config file not found");
         }
 
-        ConfigFile config = projectDir.GetConfigFile(configFileType);
+        AspNetCoreConfigFile config = projectDir.GetAspNetCoreConfigFile(configFileType);
 
         if (config.NameSpaces is null)
         {
@@ -47,7 +49,13 @@ public static class TypeForgeCoreServices
     )
     {
         string projectDir = DirectoryExtensions.GetProjectDirectory();
-        ConfigFile config = projectDir.GetConfigFile(configName);
+        var configFileType = projectDir.GetConfigFileTypeIfExist();
+        if (configFileType is ConfigFileType.None)
+        {
+            throw new Exception("Config file not found");
+        }
+
+        AspNetCoreConfigFile config = projectDir.GetAspNetCoreConfigFile(configFileType);
 
         if (config.NameSpaces is null)
         {

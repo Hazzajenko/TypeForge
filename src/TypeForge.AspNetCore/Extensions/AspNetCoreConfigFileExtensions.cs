@@ -1,12 +1,14 @@
 ﻿using System.Text.Json;
+using TypeForge.AspNetCore.Configuration;
 using TypeForge.Core.Configuration;
 using YamlDotNet.Serialization;
+using ConfigFileType = TypeForge.Core.Configuration.ConfigFileType;
 
-namespace TypeForge.Core.Extensions;
+namespace TypeForge.AspNetCore.Extensions;
 
-public static class ConfigFileExtensions
+public static class AspNetCoreConfigFileExtensions
 {
-    public static CliConfigFile GetConfigFile(
+    public static AspNetCoreConfigFile GetConfigFile(
         this string projectDir,
         ConfigFileType configFileType,
         string configFilePath
@@ -22,26 +24,18 @@ public static class ConfigFileExtensions
         };
     }
 
-    public static ConfigFileType GetConfigFileTypeIfExist(
+    public static AspNetCoreConfigFile GetAspNetCoreConfigFile(
         this string projectDir,
-        string configName = "forge"
+        string configName
     )
-    {
-        var configFilePath = Path.Combine(projectDir, $"{configName}.json");
-        if (File.Exists(configFilePath))
-        {
-            return ConfigFileType.Json;
-        }
-        configFilePath = Path.Combine(projectDir, $"{configName}.yml");
-        return File.Exists(configFilePath) ? ConfigFileType.Yml : ConfigFileType.None;
-    }
-
-    public static CliConfigFile GetConfigFile(this string projectDir, string configName)
     {
         return projectDir.GetConfigFileJson(configName);
     }
 
-    public static CliConfigFile GetConfigFile(this string projectDir, ConfigFileType configFileType)
+    public static AspNetCoreConfigFile GetAspNetCoreConfigFile(
+        this string projectDir,
+        ConfigFileType configFileType
+    )
     {
         return configFileType switch
         {
@@ -51,7 +45,7 @@ public static class ConfigFileExtensions
         };
     }
 
-    private static CliConfigFile GetConfigFileYml(
+    private static AspNetCoreConfigFile GetConfigFileYml(
         this string projectDir,
         string configName = "forge.yml"
     )
@@ -59,7 +53,9 @@ public static class ConfigFileExtensions
         IDeserializer deserializer = new DeserializerBuilder().Build();
 
         var configFilePath = Path.Combine(projectDir, configName);
-        var config = deserializer.Deserialize<CliConfigFile>(File.ReadAllText(configFilePath));
+        var config = deserializer.Deserialize<AspNetCoreConfigFile>(
+            File.ReadAllText(configFilePath)
+        );
         if (config is null)
         {
             throw new Exception("Config file is null");
@@ -67,13 +63,13 @@ public static class ConfigFileExtensions
         return config;
     }
 
-    private static CliConfigFile GetConfigFileJson(
+    private static AspNetCoreConfigFile GetConfigFileJson(
         this string projectDir,
         string configName = "forge.json"
     )
     {
         var configFilePath = Path.Combine(projectDir, configName);
-        var config = JsonSerializer.Deserialize<CliConfigFile>(
+        var config = JsonSerializer.Deserialize<AspNetCoreConfigFile>(
             File.ReadAllText(configFilePath),
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
         );

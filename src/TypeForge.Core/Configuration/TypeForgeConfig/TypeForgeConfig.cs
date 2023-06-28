@@ -20,9 +20,9 @@ public class TypeForgeConfig
 
     public bool GenerateIndexFile { get; set; } = true;
 
-    public bool GroupByNamespace { get; set; } = false;
+    // public bool GroupByNamespace { get; set; } = false;
 
-    public bool NameSpaceInOneFile { get; set; } = false;
+    // public bool NameSpaceInOneFile { get; set; } = false;
     public bool EndLinesWithSemicolon { get; set; } = false;
-    public IEnumerable<ConfigNameSpaceWithPath> NameSpaces { get; set; } = default!;
+    public IEnumerable<ConfigDirectoryWithPath> ConfigDirectories { get; set; } = default!;
 }

@@ -7,7 +7,7 @@ namespace TypeForge.Core.Extensions;
 public static class SyntaxExtensions
 {
     public static IEnumerable<SyntaxTree> GetSyntaxTrees(
-        this IEnumerable<ConfigNameSpaceWithPath> nameSpaces
+        this IEnumerable<ConfigDirectoryWithPath> nameSpaces
     )
     {
         var paths = nameSpaces.Select(x => x.Path);
@@ -16,18 +16,18 @@ public static class SyntaxExtensions
 
     public static IEnumerable<SyntaxTree> GetSyntaxTrees(this string directory)
     {
-        var paths = directory.GetFilesInNamespace();
+        var paths = directory.GetFilesInDirectory();
         return paths.SelectMany(ToSyntaxTree);
     }
 
     private static IEnumerable<SyntaxTree> ToSyntaxTree(string file) =>
-        file.GetFilesInNamespace().Select(CreateSyntaxTree);
+        file.GetFilesInDirectory().Select(CreateSyntaxTree);
 
     private static SyntaxTree CreateSyntaxTree(string file) =>
         CSharpSyntaxTree.ParseText(File.ReadAllText(file));
 
     public static CSharpCompilation GetCSharpCompilation(
-        this IEnumerable<ConfigNameSpaceWithPath> nameSpaces
+        this IEnumerable<ConfigDirectoryWithPath> nameSpaces
     ) => nameSpaces.GetSyntaxTrees().CreateCompilation();
 
     public static CSharpCompilation GetCSharpCompilation(this string directory) =>

@@ -7,40 +7,43 @@ namespace TypeForge.Core.Mapping;
 
 public static class ConfigMapping
 {
-    public static TypeForgeConfig ToTypeForgeConfig(this ConfigFile configFile, string projectDir)
-    {
-        var configNamespaces = configFile.NameSpaces.Select(
-            x => x.ToConfigNameSpaceWithPath(projectDir)
-        );
-        return new TypeForgeConfig
-        {
-            ProjectDir = projectDir,
-            FolderNameCase = configFile.FolderNameCase.ToFolderNameCase(),
-            TypeNamePrefix = configFile.TypeNamePrefix,
-            TypeNameSuffix = configFile.TypeNameSuffix,
-            TypeModel = configFile.TypeModel.ToExportModelType(),
-            TypeNameCase = configFile.TypeNameCase.ToTypeNameCase(),
-            PropertyNameCase = configFile.PropertyNameCase.ToPropertyNameCase(),
-            FileNameCase = configFile.FileNameCase.ToFileNameCase(),
-            NullableType = configFile.NullableType.ToNullableType(),
-            GenerateIndexFile = configFile.GenerateIndexFile,
-            GroupByNamespace = configFile.GroupByNameSpace,
-            NameSpaceInOneFile = configFile.NameSpaceInOneFile,
-            NameSpaces = configNamespaces
-        };
-    }
-
-    private static ConfigNameSpaceWithPath ToConfigNameSpaceWithPath(
-        this ConfigNameSpace configNameSpace,
+    public static TypeForgeConfig ToTypeForgeConfig(
+        this CliConfigFile cliConfigFile,
         string projectDir
     )
     {
-        var path = $"{projectDir}{configNameSpace.Name}";
-        return new ConfigNameSpaceWithPath
+        var configNamespaces = cliConfigFile.Directories.Select(x => x.ToConfigNameSpaceWithPath());
+        return new TypeForgeConfig
         {
-            Name = configNameSpace.Name,
-            Path = path,
-            Output = configNameSpace.Output
+            ProjectDir = projectDir,
+            FolderNameCase = cliConfigFile.FolderNameCase.ToFolderNameCase(),
+            TypeNamePrefix = cliConfigFile.TypeNamePrefix,
+            TypeNameSuffix = cliConfigFile.TypeNameSuffix,
+            TypeModel = cliConfigFile.TypeModel.ToExportModelType(),
+            TypeNameCase = cliConfigFile.TypeNameCase.ToTypeNameCase(),
+            PropertyNameCase = cliConfigFile.PropertyNameCase.ToPropertyNameCase(),
+            FileNameCase = cliConfigFile.FileNameCase.ToFileNameCase(),
+            NullableType = cliConfigFile.NullableType.ToNullableType(),
+            GenerateIndexFile = cliConfigFile.GenerateIndexFile,
+            // GroupByNamespace = cliConfigFile.GroupByNameSpace,
+            // NameSpaceInOneFile = cliConfigFile.NameSpaceInOneFile,
+            ConfigDirectories = configNamespaces
+        };
+    }
+
+    private static ConfigDirectoryWithPath ToConfigNameSpaceWithPath(
+        this ConfigDirectories configNameSpace
+    )
+    {
+        return new ConfigDirectoryWithPath
+        {
+            Input = configNameSpace.Input.ConvertSlashesToBackSlashes(),
+            Path = configNameSpace.Input.ConvertSlashesToBackSlashes(),
+            Depth = configNameSpace.Depth,
+            IncludeChildren = configNameSpace.IncludeChildren,
+            Flatten = configNameSpace.Flatten,
+            KeepRootFolder = configNameSpace.KeepRootFolder,
+            Output = configNameSpace.Output.ConvertSlashesToBackSlashes()
         };
     }
 }

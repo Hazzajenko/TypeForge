@@ -14,7 +14,7 @@ public class TypeForgeOptions
 {
     public void OnExecute()
     {
-        if (Directory is null || Output is null)
+        if (Input is null || Output is null)
         {
             Log.Logger.Information("Using config");
             HandleUseConfig();
@@ -36,23 +36,23 @@ public class TypeForgeOptions
             throw new Exception("Config file not found");
         }
 
-        ConfigFile config = projectDir.GetConfigFile(configFileType);
+        CliConfigFile cliConfig = projectDir.GetConfigFile(configFileType);
 
-        if (config.NameSpaces is null)
+        if (cliConfig.Directories is null)
         {
             throw new Exception("Config file namespaces is null");
         }
-        var globalConfig = config.ToTypeForgeConfig(projectDir);
+        var globalConfig = cliConfig.ToTypeForgeConfig(projectDir);
         var writer = new WriterService(globalConfig);
         writer.WriteFromConfig();
     }
 
     [Argument(
         0,
-        Name = "directory",
+        Name = "input",
         Description = "Directory of files to convert. Leave empty to use config."
     )]
-    public string? Directory { get; set; } = default!;
+    public string? Input { get; set; } = default!;
 
     [Argument(
         1,
@@ -143,20 +143,38 @@ public class TypeForgeOptions
     )]
     public bool GenerateIndexFile { get; set; } = true;
 
-    [Option(ShortName = "gn", LongName = "groupByNamespace", Description = "Group by namespace.")]
-    public bool GroupByNameSpace { get; set; } = true;
-
-    [Option(
-        ShortName = "nf",
-        LongName = "nameSpaceInOneFile",
-        Description = "Namespace in one file. Default = false"
-    )]
-    public bool NameSpaceInOneFile { get; set; }
-
     [Option(
         ShortName = "es",
         LongName = "endLinesWithSemicolon",
         Description = "End lines with semicolon. Default = false"
     )]
     public bool EndLinesWithSemicolon { get; set; }
+
+    [Option(
+        ShortName = "ic",
+        LongName = "includeChildren",
+        Description = "Include children. Default = true"
+    )]
+    public bool IncludeChildren { get; set; }
+
+    [Option(
+        ShortName = "d",
+        LongName = "depth",
+        Description = "Depth. Default = -1; -1 = infinite; IncludeChildren must be true."
+    )]
+    public int Depth { get; set; } = -1;
+
+    [Option(
+        ShortName = "f",
+        LongName = "flatten",
+        Description = "Flatten. Default = false; If true, all files will be in the same folder."
+    )]
+    public bool Flatten { get; set; }
+
+    [Option(
+        ShortName = "kr",
+        LongName = "keepRootFolder",
+        Description = "Keep root folder. Default = true; If false, the root folder will be removed."
+    )]
+    public bool KeepRootFolder { get; set; } = true;
 }

@@ -9,17 +9,31 @@
   "FileNameCase": "KebabCase",
   "NullableType": "?",
   "GenerateIndexFile": true,
-  "GroupByNameSpace": true,
-  "NameSpaceInOneFile": false,
   "EndLinesWithSemicolon": false,
-  "NameSpaces": [
+  "Directories": [
     {
-      "Name": "TestNamespace",
-      "Output": "/output/for/namespace1"
+      "Input": "C:/Users/jenki/source/dotnet/TypeForge/src/TypeForge.Cli/TestNamespace",
+      "IncludeChildren": true,
+      "Flatten": false,
+      "Depth": -1,
+      "KeepRootFolder": true,
+      "Output": "C:/Users/jenki/source/dotnet/TypeForge/src/TypeForge.Cli/output"
     },
     {
-      "Name": "OtherNameSpace",
-      "Output": "/output/for/namespace1"
+      "Input": "C:/Users/jenki/source/dotnet/TypeForge/src/TypeForge.Cli/OtherNameSpace",
+      "IncludeChildren": true,
+      "Flatten": false,
+      "Depth": -1,
+      "KeepRootFolder": true,
+      "Output": "C:/Users/jenki/source/dotnet/TypeForge/src/TypeForge.Cli/output"
+    },
+    {
+      "Input": "C:/Users/jenki/source/dotnet/TypeForge/src/TypeForge.Cli/OtherNameSpaceTest",
+      "IncludeChildren": true,
+      "Flatten": false,
+      "Depth": -1,
+      "KeepRootFolder": true,
+      "Output": "C:/Users/jenki/source/dotnet/TypeForge/src/TypeForge.Cli/output2"
     }
   ]
 }
