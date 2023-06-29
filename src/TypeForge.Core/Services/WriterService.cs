@@ -397,7 +397,7 @@ public class WriterService
             ?? throw new ArgumentNullException(nameof(GetConfigDirectoryByFolderName));
     }
 
-    public IEnumerable<TypeScriptFolder> GetTypeScriptFoldersByOutputPath(
+    private IEnumerable<TypeScriptFolder> GetTypeScriptFoldersByOutputPath(
         IEnumerable<TypeScriptFolder> typeScriptFolders,
         string outputPath
     )

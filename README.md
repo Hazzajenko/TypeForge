@@ -27,7 +27,7 @@ To use TypeForge in your project, follow these steps:
 2. Once the installation is complete, you can verify that the tool is installed correctly by running the following command:
 
    ```shell
-   typeforge --help
+   forge --help
    ```
 
    This command will display the help menu for the TypeForge.Cli tool.
@@ -69,15 +69,15 @@ Additionally, the CLI supports the following options:
 
 | Option                                                                             | Description                                                                 |
 |------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
-| [fc, fileNameCase](#file-name-case--fc---fileNameCase)                             | File name case. Default = KebabCase. Example = kebab-case                   |
-| [fp, fileNamePrefix](#file-name-prefix--fp---fileNamePrefix)                       | File name prefix, Default = null. Example = I                               |
-| [fs, fileNameSuffix](#file-name-suffix--fs---fileNameSuffix)                       | File name suffix, Default = null. Example = Model                           |
-| [fd, folderNameCase](#folder-name-case--fd---folderNameCase)                       | Folder name case, Default = KebabCase                                       |
 | [tm, typeModel](#type-or-interface--tm---typeModel)                                | Type or Interface. Default = Type                                           |
 | [tc, typeNameCase](#type-name-case--tc---typeNameCase)                             | Type name case. Default = PascalCase                                        |
 | [tp, typeNamePrefix](#type-name-prefix--tp---typeNamePrefix)                       | Type name prefix. Default = null. Example = I                               |
 | [ts, typeNameSuffix](#type-name-suffix--ts---typeNameSuffix)                       | Type name suffix. Default = null. Example = Model                           |
 | [pc, propertyNameCase](#property-name-case--pc---propertyNameCase)                 | Property name case. Default = CamelCase                                     |
+| [fc, fileNameCase](#file-name-case--fc---fileNameCase)                             | File name case. Default = KebabCase. Example = kebab-case                   |
+| [fp, fileNamePrefix](#file-name-prefix--fp---fileNamePrefix)                       | File name prefix, Default = null. Example = I                               |
+| [fs, fileNameSuffix](#file-name-suffix--fs---fileNameSuffix)                       | File name suffix, Default = null. Example = Model                           |
+| [fd, folderNameCase](#folder-name-case--fd---folderNameCase)                       | Folder name case, Default = KebabCase                                       |
 | [nt, nullableType](#nullable-types--nt---nullableType)                             | Nullable type. Default = QuestionMark. QuestionMark or Null Or Undefined    |
 | [gi, generateIndexFile](#generate-index-file--gi---generateIndexFile)              | Generate an index file to export all generated files. Default = true        |
 | [es, endLinesWithSemicolon](#end-lines-with-semicolon--es---endLinesWithSemiColon) | End lines with semicolon. Default = false                                   |
@@ -232,165 +232,32 @@ export type Example = {
 ```
 
 ---
-### Property Name Case (`-pc, --propertyNameCase`)
+### Type Name Case (`-tc, --typeNameCase`)
 
-The `propertyNameCase` option determines the case of property names in the generated TypeScript definition. Here are the available options:
+The `typeNameCase` option determines the case of type names in the generated TypeScript definition. Here are the available options:
 
-- `CamelCase` - Makes property names camel cased.
 - `PascalCase` - Makes property names Pascal cased.
-- `KebabCase` - Makes property names kebab cased.
-- `SnakeCase` - Makes property names snake cased.
+- `CamelCase` - Makes property names camel cased.
 
 Here are examples of how this would affect your output:
+
+#### Pascal Case (Default)
+
+```typescript
+// When TypeNameCase === "PascalCase"
+export type ExampleModel = {
+   propertyName: string
+}
+````
 
 #### Camel Case
 
 ```typescript
-// When PropertyNameCase === "CamelCase"
-export type Example = {
+// When TypeNameCase === "CamelCase"
+export type exampleModel = {
     propertyName: string
 }
 ```
-
-#### Pascal Case
-
-```typescript
-// When PropertyNameCase === "PascalCase"
-export type Example = {
-    PropertyName: string
-}
-````
-
-#### Kebab Case
-
-```typescript
-// When PropertyNameCase === "KebabCase"
-export type Example = {
-    'property-name': string
-}
-```
-
-#### Snake Case
-
-```typescript
-// When PropertyNameCase === "SnakeCase"
-export type Example = {
-    property_name: string
-}
-```
-
-Please note that in TypeScript, Kebab Case and Snake Case would require accessing the properties using bracket notation. For example, for Kebab Case, you would need to access the `property-name` like so: `example['property-name']`.
-
----
-### File Name Prefix (`-fp, --fileNamePrefix`)
-
-The `fileNamePrefix` option lets you specify a prefix that will be added to the beginning of all file names.
-
-Consider a scenario where you have a file named `example.ts`. If you set the `fileNamePrefix` to "I", the output file would be named `Iexample.ts`.
-
-Here is an example:
-
-#### Without Prefix
-
-```typescript
-// When FileNamePrefix is empty
-// File name: example.ts
-export type Example = {
-    propertyName: string
-}
-```
-
-#### With Prefix
-
-```typescript
-// When FileNamePrefix === "I"
-// File name: Iexample.ts
-export type Example = {
-    propertyName: string
-}
-```
-
-Remember that the value you set for `fileNamePrefix` will be prepended to all generated file names.
-
----
-### File Name Suffix (`-fs, --fileNameSuffix`)
-
-The `fileNameSuffix` option allows you to specify a suffix that will be added to the end of all file names.
-
-Consider a scenario where you have a file named `example.ts`. If you set the `fileNameSuffix` to "model", the output file would be named `example-model.ts`.
-
-Here is an example:
-
-#### Without Suffix
-
-```typescript
-// File: example.ts
-export type Example = {
-    propertyName: string
-}
-```
-
-#### With Suffix
-
-```typescript
-// File: example-model.ts
-export type Example = {
-    propertyName: string
-}
-```
-
-Remember that the value you set for `fileNameSuffix` will be appended to all generated file names.
-
----
-### Folder Name Case (`-fd, --folderNameCase`)
-
-The `folderNameCase` option allows you to specify the case format for folder names.
-
-Consider a scenario where you have a folder named `MyFolder` and you set the `folderNameCase` to "KebabCase". The output folder name would be `my-folder`.
-
-Here are examples of different folder name cases:
-
-
-#### KebabCase (Default)
-
-Input:
-```
-FolderNameCase: "KebabCase"
-Folder: MyFolder
-```
-
-Output:
-```
-Folder: my-folder
-```
-
-#### CamelCase
-
-Input:
-```
-FolderNameCase: "CamelCase"
-Folder: MyFolder
-```
-
-Output:
-```
-Folder: myFolder
-```
-
-#### PascalCase
-
-Input:
-```
-FolderNameCase: "PascalCase"
-Folder: MyFolder
-```
-
-Output:
-```
-Folder: MyFolder
-```
-
-Remember that the `folderNameCase` option defines the case format for all generated folder names.
 
 ---
 
@@ -452,6 +319,269 @@ export type ExampleModel = {
 Remember that the value you set for `typeNameSuffix` will be appended to all generated type names.
 
 ---
+### Property Name Case (`-pc, --propertyNameCase`)
+
+The `propertyNameCase` option determines the case of property names in the generated TypeScript definition. Here are the available options:
+
+- `CamelCase` - Makes property names camel cased.
+- `PascalCase` - Makes property names Pascal cased.
+- `KebabCase` - Makes property names kebab cased.
+- `SnakeCase` - Makes property names snake cased.
+
+Here are examples of how this would affect your output:
+
+#### Camel Case
+
+```typescript
+// When PropertyNameCase === "CamelCase"
+export type Example = {
+    propertyName: string
+}
+```
+
+#### Pascal Case
+
+```typescript
+// When PropertyNameCase === "PascalCase"
+export type Example = {
+    PropertyName: string
+}
+````
+
+#### Kebab Case
+
+```typescript
+// When PropertyNameCase === "KebabCase"
+export type Example = {
+    'property-name': string
+}
+```
+
+#### Snake Case
+
+```typescript
+// When PropertyNameCase === "SnakeCase"
+export type Example = {
+    property_name: string
+}
+```
+
+Please note that in TypeScript, Kebab Case and Snake Case would require accessing the properties using bracket notation. For example, for Kebab Case, you would need to access the `property-name` like so: `example['property-name']`.
+
+---
+### File Name Case (`-fc, --fileNameCase`)
+
+The `fileNameCase` option determines the case of file names in the generated TypeScript definition. Here are the available options:
+
+- `CamelCase` - Makes property names camel cased.
+- `PascalCase` - Makes property names Pascal cased.
+- `KebabCase` - Makes property names kebab cased.
+
+Here are examples of how this would affect your output:
+
+#### Kebab Case (Default)
+
+```
+C:/directory/to/backend/
+└── Requests
+    ├── File1.cs
+    ├── File2.cs
+    └── File3.cs
+
+```
+
+```
+C:/directory/to/frontend/output/
+├── index.ts
+└── requests
+    ├── index.ts
+    ├── file-1.ts
+    ├── file-2.ts
+    └── file-3.ts
+```
+
+#### Camel Case
+
+```
+C:/directory/to/backend/
+└── Requests
+    ├── File1.cs
+    ├── File2.cs
+    └── File3.cs
+
+```
+
+```
+C:/directory/to/frontend/output/
+├── index.ts
+└── requests
+    ├── index.ts
+    ├── file1.ts
+    ├── file2.ts
+    └── file3.ts
+```
+
+#### Pascal Case
+
+
+```
+C:/directory/to/backend/
+└── Requests
+    ├── File1.cs
+    ├── File2.cs
+    └── File3.cs
+```
+
+```
+C:/directory/to/frontend/output/
+├── index.ts
+└── requests
+    ├── index.ts
+    ├── File1.ts
+    ├── File2.ts
+    └── File3.ts
+```
+
+Please note that in TypeScript, Kebab Case and Snake Case would require accessing the properties using bracket notation. For example, for Kebab Case, you would need to access the `property-name` like so: `example['property-name']`.
+
+---
+### File Name Prefix (`-fp, --fileNamePrefix`)
+
+The `fileNamePrefix` option lets you specify a prefix that will be added to the beginning of all file names.
+
+Consider a scenario where you have a file named `example.ts`. If you set the `fileNamePrefix` to "I", the output file would be named `Iexample.ts`.
+
+Here is an example:
+
+#### Without Prefix
+
+```
+// When FileNamePrefix is empty
+C:/directory/to/frontend/output/
+├── index.ts
+└── requests
+    ├── index.ts
+    └── example.ts
+```
+
+#### With Prefix
+
+```
+// When FileNamePrefix === "I"
+C:/directory/to/frontend/output/
+├── index.ts
+└── requests
+    ├── index.ts
+    └── Iexample.ts
+```
+
+Remember that the value you set for `fileNamePrefix` will be prepended to all generated file names.
+
+---
+### File Name Suffix (`-fs, --fileNameSuffix`)
+
+The `fileNameSuffix` option allows you to specify a suffix that will be added to the end of all file names.
+
+Consider a scenario where you have a file named `example.ts`. If you set the `fileNameSuffix` to "model", the output file would be named `example.model.ts`.
+
+Here is an example:
+
+#### Without Suffix
+
+```
+C:/directory/to/frontend/output/
+├── index.ts
+└── requests
+    ├── index.ts
+    └── example.ts
+```
+
+#### With Suffix
+
+```
+C:/directory/to/frontend/output/
+├── index.ts
+└── requests
+    ├── index.ts
+    └── example.model.ts
+```
+
+Remember that the value you set for `fileNameSuffix` will be appended to all generated file names.
+
+---
+### Folder Name Case (`-fd, --folderNameCase`)
+
+The `folderNameCase` option allows you to specify the case format for folder names.
+
+Consider a scenario where you have a folder named `MyFolder` and you set the `folderNameCase` to "KebabCase". The output folder name would be `my-folder`.
+
+Here are examples of different folder name cases:
+
+
+#### KebabCase (Default)
+
+Input:
+
+```
+C:/directory/to/backend/
+└── MyFolder
+    └── example.cs
+```
+
+Output:
+
+```
+C:/directory/to/frontend/output/
+├── index.ts
+└── my-folder
+    ├── index.ts
+    └── example.ts
+```
+
+#### CamelCase
+
+
+Input:
+
+```
+C:/directory/to/backend/
+└── MyFolder
+    └── example.cs
+```
+
+Output:
+
+```
+C:/directory/to/frontend/output/
+├── index.ts
+└── myFolder
+    ├── index.ts
+    └── example.ts
+```
+
+#### PascalCase
+
+Input:
+
+```
+C:/directory/to/backend/
+└── MyFolder
+    └── example.cs
+```
+
+Output:
+
+```
+C:/directory/to/frontend/output/
+├── index.ts
+└── MyFolder
+    ├── index.ts
+    └── example.ts
+```
+
+Remember that the `folderNameCase` option defines the case format for all generated folder names.
+
+
 ### Generate Index File (`-gi, --generateIndexFile`)
 
 The `generateIndexFile` option controls whether an index file should be generated to export all the generated files.
@@ -467,6 +597,16 @@ export * from './file1'
 export * from './file2'
 export * from './file3'
 // ... and so on
+```
+
+```
+C:/directory/to/frontend/output/
+├── index.ts
+└── requests
+    ├── index.ts
+    ├── file-1.ts
+    ├── file-2.ts
+    └── file-3.ts
 ```
 
 By default, `generateIndexFile` is set to `true`, but you can disable it by setting it to `false` if you don't want an index file to be generated.
@@ -488,11 +628,11 @@ In this example
 ``` json
 "Directories": [
   {
-    "Input": "C:/directory/to/c#project/Requests",
+    "Input": "C:/directory/to/backend/Requests",
     "Output": "C:/directory/to/frontend/output/"
   },
   {
-    "Input": "C:/directory/to/c#project/Responses",
+    "Input": "C:/directory/to/backend/Responses",
     "Output": "C:/directory/to/frontend/output/"
   }
 ]
@@ -566,12 +706,12 @@ In this example
 ``` json
 "Directories": [
   {
-    "Input": "C:/directory/to/c#project/Requests",
+    "Input": "C:/directory/to/backend/Requests",
     "IncludeChildren": true,
     "Output": "C:/directory/to/frontend/output/"
   },
   {
-    "Input": "C:/directory/to/c#project/Responses",
+    "Input": "C:/directory/to/backend/Responses",
     "IncludeChildren": true,
     "Output": "C:/directory/to/frontend/output/"
   }
