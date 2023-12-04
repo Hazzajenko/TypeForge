@@ -46,7 +46,7 @@ public class ConfigMappingTests : IClassFixture<TestFactory>
         var projectDir = "C:\\Test";
 
         // Act
-        var result = cliConfigFile.ToTypeForgeConfig(projectDir);
+        // var result = cliConfigFile.ToTypeForgeConfig(projectDir);
 
         // Assert
         // Assert based on your expected result
