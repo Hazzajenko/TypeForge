@@ -24,8 +24,10 @@ public class TypeScriptFolder
 
     public static TypeScriptFolder RemoveFolderName(TypeScriptFolder typeScriptFolder)
     {
-        var childTypeScriptFolder = new TypeScriptFolder(typeScriptFolder);
-        childTypeScriptFolder.FolderName = "";
+        var childTypeScriptFolder = new TypeScriptFolder(typeScriptFolder)
+        {
+            FolderName = ""
+        };
         return childTypeScriptFolder;
     }
 

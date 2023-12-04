@@ -10,6 +10,7 @@ namespace TypeForge.Core.Services;
 
 public class WriterService
 {
+    private static readonly ILogger Log = Serilog.Log.ForContext<WriterService>();
     private readonly TypeForgeConfig _config;
     private bool EndLinesWithSemicolon => _config.EndLinesWithSemicolon;
     private bool GenerateIndexFile => _config.GenerateIndexFile;

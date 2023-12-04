@@ -33,17 +33,9 @@ public static class SyntaxMapping
     )
     {
         var folderName = filesGroupedByPath.Key;
-        // List<ValueTuple<string, string>> attempted = new List<ValueTuple<string, string>>();
         var outputPath = config.ConfigDirectories
             .GetConfigDirectoryByFolderName(folderName, config.FolderNameCase)
             .Output;
-        // Log.Information("OutputPath: {OutputPath}", outputPath);
-        // if (outputPath == null)
-        // {
-        //     Log.Error("Could not find output path for folder {FolderName}", folderName);
-        //     Log.Error("Attempted: {Attempted}", attempted);
-        //     throw new ArgumentNullException(nameof(outputPath));
-        // }
         return new TypeScriptFolder
         {
             FolderName = folderName,
@@ -58,7 +50,8 @@ public static class SyntaxMapping
         FolderNameCase folderNameCase
     )
     {
-        List<ValueTuple<string, string>> attempted = new List<ValueTuple<string, string>>();
+        // ReSharper disable once CollectionNeverQueried.Local
+        var attempted = new List<ValueTuple<string, string>>();
         return configDirectories
                 .Where(x =>
                 {
@@ -70,7 +63,6 @@ public static class SyntaxMapping
                         : folderName;
                     attempted.Add((bFolderName, xFolderName));
                     return xFolderName == bFolderName;
-                    // return folderName.Contains(xFolderName);
                 })
                 .SingleOrDefault() ?? throw new ArgumentNullException(nameof(configDirectories));
     }
@@ -86,8 +78,6 @@ public static class SyntaxMapping
             var filesInNamespace = directoryWithPath.IncludeChildren
                 ? directoryWithPath.GetFilesInDirectoryAndSubDirectoriesByDepth()
                 : directoryWithPath.GetFilesInOnlyTopDirectory();
-
-            // Log.Information("Files in namespace: {FilesInNamespace}", filesInNamespace);
 
             return filesInNamespace.Select(
                 file => file.ToTypeScriptFile(compilation, config, directoryWithPath)
@@ -105,13 +95,6 @@ public static class SyntaxMapping
         SyntaxTree tree = CSharpSyntaxTree.ParseText(File.ReadAllText(file));
         var root = (CompilationUnitSyntax)tree.GetRoot();
         var fileName = file.GetFileNameFromPath();
-        // var pathRelativeToRoot = directory.KeepRootFolder
-        //     ? file.GetPathFromParentNamespaceKeepRootFolder(
-        //         directory.Path,
-        //         fileName,
-        //         config.FolderNameCase
-        //     )
-        //     : file.GetPathFromParentNamespace(directory.Path, fileName, config.FolderNameCase);
         var pathRelativeToRoot = file.GetPathFromParentNamespaceKeepRootFolder(
             directory.Path,
             fileName,

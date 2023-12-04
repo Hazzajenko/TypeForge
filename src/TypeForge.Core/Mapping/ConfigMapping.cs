@@ -25,8 +25,6 @@ public static class ConfigMapping
             FileNameCase = cliConfigFile.FileNameCase.ToFileNameCase(),
             NullableType = cliConfigFile.NullableType.ToNullableType(),
             GenerateIndexFile = cliConfigFile.GenerateIndexFile,
-            // GroupByNamespace = cliConfigFile.GroupByNameSpace,
-            // NameSpaceInOneFile = cliConfigFile.NameSpaceInOneFile,
             ConfigDirectories = configNamespaces
         };
     }
