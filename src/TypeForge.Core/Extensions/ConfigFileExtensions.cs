@@ -51,7 +51,7 @@ public static class ConfigFileExtensions
         };
     }
 
-    private static CliConfigFile GetConfigFileYml(
+    public static CliConfigFile GetConfigFileYml(
         this string projectDir,
         string configName = "forge.yml"
     )
@@ -67,7 +67,7 @@ public static class ConfigFileExtensions
         return config;
     }
 
-    private static CliConfigFile GetConfigFileJson(
+    public static CliConfigFile GetConfigFileJson(
         this string projectDir,
         string configName = "forge.json"
     )

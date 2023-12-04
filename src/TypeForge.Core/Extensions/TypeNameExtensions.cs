@@ -18,20 +18,21 @@ public static class TypeNameExtensions
             .ToCaseOfOption(typeNameCase);
     }
 
-    private static string AddPrefixAndSuffix(
+    public static string AddPrefixAndSuffix(
         this string typeName,
         string? prefix = null,
-        string? suffix = null
+        string? suffix = null,
+        PropertyNameCase option = PropertyNameCase.CamelCase
     )
     {
         if (prefix is not null)
         {
-            typeName = $"{prefix}{typeName}".ToCaseOfOption(PropertyNameCase.CamelCase);
+            typeName = $"{prefix}{typeName}".ToCaseOfOption(option);
         }
 
         if (suffix is not null)
         {
-            typeName = $"{typeName}{suffix}".ToCaseOfOption(PropertyNameCase.CamelCase);
+            typeName = $"{typeName}{suffix}".ToCaseOfOption(option);
         }
 
         return typeName;

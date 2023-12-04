@@ -34,12 +34,12 @@ public static class FileNameExtensions
             .AddTsExtension();
     }
 
-    private static string RemoveCsExtension(this string fileName)
+    public static string RemoveCsExtension(this string fileName)
     {
         return fileName.Replace(".cs", "");
     }
 
-    private static string AddPrefixAndSuffix(
+    public static string AddPrefixAndSuffix(
         this string fileName,
         FileNameCase fileNameCase,
         string? prefix = null,
@@ -53,7 +53,7 @@ public static class FileNameExtensions
 
         if (suffix is not null)
         {
-            fileName = $"{fileName}.{suffix.ToCaseOfOption(fileNameCase)}";
+            fileName = $"{fileName}{suffix.ToCaseOfOption(fileNameCase)}";
         }
 
         return fileName;
@@ -81,7 +81,7 @@ public static class FileNameExtensions
         };
     }
 
-    private static string AddTsExtension(this string s)
+    public static string AddTsExtension(this string s)
     {
         return $"{s}.ts";
     }
