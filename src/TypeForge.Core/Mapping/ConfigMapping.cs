@@ -29,7 +29,7 @@ public static class ConfigMapping
         };
     }
 
-    private static ConfigDirectoryWithPath ToConfigNameSpaceWithPath(
+    public static ConfigDirectoryWithPath ToConfigNameSpaceWithPath(
         this ConfigDirectories configNameSpace
     )
     {
